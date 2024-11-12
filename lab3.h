@@ -9,13 +9,13 @@ namespace m1
 {
     class Lab3 : public gfxc::SimpleScene
     {
-     public:
+    public:
         Lab3();
         ~Lab3();
 
         void Init() override;
 
-     private:
+    private:
         void FrameStart() override;
         void Update(float deltaTimeSeconds) override;
         void FrameEnd() override;
@@ -23,32 +23,58 @@ namespace m1
         void OnInputUpdate(float deltaTime, int mods) override;
         void OnKeyPress(int key, int mods) override;
         void OnKeyRelease(int key, int mods) override;
-        void OnMouseMove(int mouseX, int mouseY, int deltaX, int deltaY) override;
-        void OnMouseBtnPress(int mouseX, int mouseY, int button, int mods) override;
-        void OnMouseBtnRelease(int mouseX, int mouseY, int button, int mods) override;
-        void OnMouseScroll(int mouseX, int mouseY, int offsetX, int offsetY) override;
+        void OnMouseMove(int mouseX, int mouseY, int deltaX,
+                         int deltaY) override;
+        void OnMouseBtnPress(int mouseX, int mouseY, int button,
+                             int mods) override;
+        void OnMouseBtnRelease(int mouseX, int mouseY, int button,
+                               int mods) override;
+        void OnMouseScroll(int mouseX, int mouseY, int offsetX,
+                           int offsetY) override;
         void OnWindowResize(int width, int height) override;
 
 
         void CreateHeightMap(int nrPoints)
         {
+            xValues.reserve(nrPoints);
+            yValues.reserve(nrPoints);
             glm::ivec2 resolution = window->GetResolution();
-            float step = resolution.x / (nrPoints - 1);
 
-            for (int i = 0; i < nrPoints; ++i) {
-                float x = i * step;
+            double step = (double)resolution.x / (double)(nrPoints - 1);
+            double periodLenghtening = 300;
+
+            for (int i = 0; i < nrPoints; ++i)
+            {
+                double x = i * step;
+                std::cout << x << " " << std::endl;
+                // Increase the period of the function
+                double t = x / periodLenghtening;
+
                 // Fourier series used to generate the height map
-                float y = sin(x) + 2 * sin(0.5 * x) + 0.5 * sin(3 * x);
-                heightMap[x] = y;
+                double y = 4 * sin(t) + 2 * sin(
+                    2 * t) + 1.5 * sin(
+                    3 * t) + 1 * sin(5 * t) + 0.5 * sin(10 * t) + 0.2 * sin(
+                    20 * t);
+                // Make the change in height more drastic
+                y *= 30;
+
+                y += (double)resolution.y / 2;
+
+                xValues[i] = x;
+                yValues[i] = y;
             }
 
             // Print the height map
-            for (auto it = heightMap.begin(); it != heightMap.end(); ++it) {
-                std::cout << it->first << " " << it->second << std::endl;
+            for (auto point : yValues)
+            {
+                std::cout << point << " " << std::endl;
             }
+
+            // Print width and height of the window
+            std::cout << resolution.x << " " << resolution.y << std::endl;
         }
 
-     protected:
+    protected:
         float cx, cy;
         glm::mat3 modelMatrix;
         float translateX, translateY;
@@ -64,7 +90,8 @@ namespace m1
 
         Direction dirY, size;
 
-        std::unordered_map<float, float> heightMap;
-        constexpr static int nrPoints = 100;
+        std::vector<double> xValues;
+        std::vector<double> yValues;
+        constexpr static int nrPoints = 300;
     };
-}   // namespace m1
+} // namespace m1

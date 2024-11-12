@@ -24,8 +24,7 @@ Lab3::Lab3()
 
 
 Lab3::~Lab3()
-{
-}
+{}
 
 
 void Lab3::Init()
@@ -43,40 +42,48 @@ void Lab3::Init()
     glm::vec3 corner = glm::vec3(0, 0, 0);
     float squareSide = 100;
 
-    // TODO(student): Compute coordinates of a square's center, and store
-    // then in the `cx` and `cy` class variables (see the header). Use
-    // `corner` and `squareSide`. These two class variables will be used
-    // in the `Update()` function. Think about it, why do you need them?
-
     cx = corner.x + (squareSide - corner.x) / 2;
     cy = corner.y + (squareSide - corner.y) / 2;
 
-    // Initialize tx and ty (the translation steps)
     translateX = 0;
     translateY = 0;
-
-    // Initialize sx and sy (the scale factors)
     scaleX = 1;
     scaleY = 1;
-
-    // Initialize angularStep
     angularStep = 0;
 
-    Mesh* square1 = object2D::CreateSquare("square1", corner, squareSide, glm::vec3(1, 0, 0), true);
-    AddMeshToList(square1);
+    // Create vertices for the triangle strip
+    vector<VertexFormat> vertices;
+    vertices.reserve(yValues.size() * 2);
 
-    Mesh* square2 = object2D::CreateSquare("square2", corner, squareSide, glm::vec3(0, 1, 0));
-    AddMeshToList(square2);
+    glm::vec3 groundColor(1.0 / 255 * 120, 1.0 / 255 * 150, 1.0 / 255 * 100);
 
-    Mesh* square3 = object2D::CreateSquare("square3", corner, squareSide, glm::vec3(0, 0, 1));
-    AddMeshToList(square3);
+    for (int i = 0;i< nrPoints; i++)
+    {
+        vertices.emplace_back(glm::vec3(xValues[i], yValues[i], 0), groundColor);
+        vertices.emplace_back(glm::vec3(xValues[i], 0, 0), groundColor);
+    }
+
+    // Define indices for the triangle strip
+    vector<unsigned int> indices;
+    indices.reserve(vertices.size());
+    for (unsigned int i = 0; i < vertices.size(); ++i)
+    {
+        indices.push_back(i);
+    }
+
+    // Create and initialize the triangle strip mesh
+    Mesh* triangleStrip = new Mesh("triangle_strip");
+    triangleStrip->SetDrawMode(GL_TRIANGLE_STRIP);
+    triangleStrip->InitFromData(vertices, indices);
+    AddMeshToList(triangleStrip);
 }
 
 
 void Lab3::FrameStart()
 {
+    glm::vec3 skyColor(1.0 / 255 * 135, 1.0 / 255 * 206, 1.0 / 255 * 255);
     // Clears the color buffer (using the previously set color) and depth buffer
-    glClearColor(0.3, 0.6, 1, 1);
+    glClearColor(skyColor.r, skyColor.g, skyColor.b, 1);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     glm::ivec2 resolution = window->GetResolution();
@@ -87,98 +94,40 @@ void Lab3::FrameStart()
 
 void Lab3::Update(float deltaTimeSeconds)
 {
-    // TODO(student): Update steps for translation, rotation and scale,
-    // in order to create animations. Use the class variables in the
-    // class header, and if you need more of them to complete the task,
-    // add them over there!
-
+    // Update translation
     modelMatrix = glm::mat3(1);
 
-    modelMatrix *= transform2D::Translate(150, 250);
-    // TODO(student): Create animations by multiplying the current
-    // transform matrix with the matrices you just implemented.
-    // Remember, the last matrix in the chain will take effect first!
+    // modelMatrix *= transform2D::Translate(150, 250);
 
-    switch (dirY)
-    {
-    case UP:
-        {
-            translateY += 100 * deltaTimeSeconds; // Move up
-            break;
-        }
-    case DOWN:
-        {
-            translateY -= 100 * deltaTimeSeconds; // Move down
-            break;
-        }
-    }
-    if(translateY > 200)
-    {
-        dirY = DOWN;
-    }
-    if(translateY < -200)
-    {
-        dirY = UP;
-    }
-    modelMatrix *= transform2D::Translate(0, translateY);
+    // switch (dirY)
+    // {
+    // case UP:
+    // {
+    //     translateY += 100 * deltaTimeSeconds; // Move up
+    //     break;
+    // }
+    // case DOWN:
+    // {
+    //     translateY -= 100 * deltaTimeSeconds; // Move down
+    //     break;
+    // }
+    // }
+    // if (translateY > 200)
+    // {
+    //     dirY = DOWN;
+    // }
+    // if (translateY < -200)
+    // {
+    //     dirY = UP;
+    // }
+    // modelMatrix *= transform2D::Translate(0, translateY);
 
-
-    RenderMesh2D(meshes["square1"], shaders["VertexColor"], modelMatrix);
-
-    modelMatrix = glm::mat3(1);
-    modelMatrix *= transform2D::Translate(400, 250);
-    // TODO(student): Create animations by multiplying the current
-    // transform matrix with the matrices you just implemented
-    // Remember, the last matrix in the chain will take effect first!
-
-    switch (size)
-    {
-    case UP:
-        {
-            scaleX += 0.5f * deltaTimeSeconds; // Increase size
-            scaleY += 0.5f * deltaTimeSeconds; // Increase size
-            break;
-        }
-    case DOWN:
-        {
-            scaleX -= 0.5f * deltaTimeSeconds; // Decrease size
-            scaleY -= 0.5f * deltaTimeSeconds; // Decrease size
-            break;
-        }
-    }
-    if (scaleX > 2.0f || scaleY > 2.0f)
-    {
-        size = DOWN;
-    }
-    if (scaleX < 0.5f || scaleY < 0.5f)
-    {
-        size = UP;
-    }
-    modelMatrix *= transform2D::Translate(cx, cy);
-    modelMatrix *= transform2D::Scale(scaleX, scaleY);
-    modelMatrix *= transform2D::Translate(-cx, -cy);
-
-    RenderMesh2D(meshes["square2"], shaders["VertexColor"], modelMatrix);
-
-    modelMatrix = glm::mat3(1);
-    modelMatrix *= transform2D::Translate(650, 250);
-    // TODO(student): Create animations by multiplying the current
-    // transform matrix with the matrices you just implemented
-    // Remember, the last matrix in the chain will take effect first!
-
-    angularStep += 2 * deltaTimeSeconds;
-    modelMatrix *= transform2D::Translate(cx, cy);
-    modelMatrix *= transform2D::Rotate(angularStep);
-    modelMatrix *= transform2D::Translate(-cx, -cy);
-
-
-    RenderMesh2D(meshes["square3"], shaders["VertexColor"], modelMatrix);
+    RenderMesh2D(meshes["triangle_strip"], shaders["VertexColor"], modelMatrix);
 }
 
 
 void Lab3::FrameEnd()
-{
-}
+{}
 
 
 /*
@@ -188,8 +137,7 @@ void Lab3::FrameEnd()
 
 
 void Lab3::OnInputUpdate(float deltaTime, int mods)
-{
-}
+{}
 
 
 void Lab3::OnKeyPress(int key, int mods)
@@ -223,11 +171,8 @@ void Lab3::OnMouseBtnRelease(int mouseX, int mouseY, int button, int mods)
 
 
 void Lab3::OnMouseScroll(int mouseX, int mouseY, int offsetX, int offsetY)
-{
-}
+{}
 
 
 void Lab3::OnWindowResize(int width, int height)
-{
-}
-
+{}
