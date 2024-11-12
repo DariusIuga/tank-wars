@@ -1,5 +1,7 @@
 #pragma once
 
+#include <iostream>
+
 #include "components/simple_scene.h"
 
 
@@ -27,6 +29,25 @@ namespace m1
         void OnMouseScroll(int mouseX, int mouseY, int offsetX, int offsetY) override;
         void OnWindowResize(int width, int height) override;
 
+
+        void CreateHeightMap(int nrPoints)
+        {
+            glm::ivec2 resolution = window->GetResolution();
+            float step = resolution.x / (nrPoints - 1);
+
+            for (int i = 0; i < nrPoints; ++i) {
+                float x = i * step;
+                // Fourier series used to generate the height map
+                float y = sin(x) + 2 * sin(0.5 * x) + 0.5 * sin(3 * x);
+                heightMap[x] = y;
+            }
+
+            // Print the height map
+            for (auto it = heightMap.begin(); it != heightMap.end(); ++it) {
+                std::cout << it->first << " " << it->second << std::endl;
+            }
+        }
+
      protected:
         float cx, cy;
         glm::mat3 modelMatrix;
@@ -42,5 +63,8 @@ namespace m1
         };
 
         Direction dirY, size;
+
+        std::unordered_map<float, float> heightMap;
+        constexpr static int nrPoints = 100;
     };
 }   // namespace m1

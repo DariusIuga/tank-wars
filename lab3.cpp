@@ -38,6 +38,8 @@ void Lab3::Init()
     camera->Update();
     GetCameraInput()->SetActive(false);
 
+    CreateHeightMap(nrPoints);
+
     glm::vec3 corner = glm::vec3(0, 0, 0);
     float squareSide = 100;
 
@@ -74,7 +76,7 @@ void Lab3::Init()
 void Lab3::FrameStart()
 {
     // Clears the color buffer (using the previously set color) and depth buffer
-    glClearColor(0, 0, 0, 1);
+    glClearColor(0.3, 0.6, 1, 1);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     glm::ivec2 resolution = window->GetResolution();
@@ -228,3 +230,4 @@ void Lab3::OnMouseScroll(int mouseX, int mouseY, int offsetX, int offsetY)
 void Lab3::OnWindowResize(int width, int height)
 {
 }
+
