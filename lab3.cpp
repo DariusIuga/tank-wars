@@ -5,6 +5,7 @@
 
 #include "lab_m1/lab3/transform2D.h"
 #include "lab_m1/lab3/object2D.h"
+#include "lab_m1/lab4/transform3D.h"
 
 using namespace std;
 using namespace m1;
@@ -16,8 +17,11 @@ using namespace m1;
 
 Lab3::Lab3()
 {
-    radiansBarrel1 = 0;
-    radiansBarrel2 = 0;
+    angleBarrel1 = 0;
+    angleBarrel2 = 0;
+
+    angleTank1 = 0;
+    angleTank2 = 0;
 }
 
 Lab3::~Lab3()
@@ -139,17 +143,17 @@ void Lab3::Init()
 
     vector<VertexFormat> turret1Vertices;
     vector<VertexFormat> turret2Vertices;
-    turret1Vertices.emplace_back(glm::vec3(0, 50, 0), tank1ArmorColor);
-    turret2Vertices.emplace_back(glm::vec3(0, 50, 0), tank2ArmorColor);
+    turret1Vertices.emplace_back(glm::vec3(0, trackHeight + armorHeight, 0), tank1ArmorColor);
+    turret2Vertices.emplace_back(glm::vec3(0, trackHeight + armorHeight, 0), tank2ArmorColor);
     for (int i = 0; i <= nrTrianglesCircle; i++)
     {
         float angle = M_PI / nrTrianglesCircle * (i + 0.5);
         turret1Vertices.emplace_back(
-            glm::vec3(turretRadius * cos(angle), turretRadius * sin(angle) + 40,
+            glm::vec3(turretRadius * cos(angle), turretRadius * sin(angle) + trackHeight + armorHeight - 5,
                       0),
             tank1ArmorColor);
         turret2Vertices.emplace_back(
-            glm::vec3(turretRadius * cos(angle), turretRadius * sin(angle) + 40,
+            glm::vec3(turretRadius * cos(angle), turretRadius * sin(angle) + trackHeight + armorHeight - 5,
                       0),
             tank2ArmorColor);
     }
@@ -218,7 +222,10 @@ void Lab3::Update(float deltaTimeSeconds)
 
     // Model matrix for the first tank
     glm::mat3 tank1ModelMatrix = glm::mat3(1);
-    tank1ModelMatrix *= transform2D::Translate(static_cast<float>(resolution.x) / 2, 700);
+    tank1ModelMatrix *= transform2D::Translate(tank1X, tank1Y);
+    // Rotate the tank around its center
+    tank1ModelMatrix *= transform2D::Rotate(angleTank1);
+
     // Render tank 1 base
     RenderMesh2D(meshes["tank1_base"], shaders["VertexColor"],
                  tank1ModelMatrix);
@@ -227,13 +234,16 @@ void Lab3::Update(float deltaTimeSeconds)
 
     glm::mat3 cannon1ModelMatrix = tank1ModelMatrix;
     cannon1ModelMatrix *= transform2D::Translate(0, trackHeight + armorHeight);
-    cannon1ModelMatrix *= transform2D::Rotate(radiansBarrel1);
+    cannon1ModelMatrix *= transform2D::Rotate(angleBarrel1);
     // Render tank 1 cannon
     RenderMesh2D(meshes["cannon"], shaders["VertexColor"], cannon1ModelMatrix);
 
     // Model matrix for the second tank
     glm::mat3 tank2ModelMatrix = glm::mat3(1);
-    tank2ModelMatrix *= transform2D::Translate(static_cast<float>(resolution.x) - 300, 700);
+    tank2ModelMatrix *= transform2D::Translate(tank2X, tank2Y);
+    // Rotate the tank around its center
+    tank2ModelMatrix *= transform2D::Rotate(angleTank2);
+
     // Render tank 2 base
     RenderMesh2D(meshes["tank2_base"], shaders["VertexColor"],
                  tank2ModelMatrix);
@@ -242,7 +252,7 @@ void Lab3::Update(float deltaTimeSeconds)
 
     glm::mat3 cannon2ModelMatrix = tank2ModelMatrix;
     cannon2ModelMatrix *= transform2D::Translate(0, trackHeight + armorHeight);
-    cannon2ModelMatrix *= transform2D::Rotate(radiansBarrel2);
+    cannon2ModelMatrix *= transform2D::Rotate(angleBarrel2);
     // Render tank 2 cannon
     RenderMesh2D(meshes["cannon"], shaders["VertexColor"], cannon2ModelMatrix);
 }
@@ -258,26 +268,54 @@ void Lab3::FrameEnd()
 
 void Lab3::OnInputUpdate(float deltaTime, int mods)
 {
+    // Barrel rotation
     // Rotate the cannon of the first tank counterclockwise (lift it)
     if(window->KeyHold(GLFW_KEY_W))
     {
-        radiansBarrel1 += deltaTime;
+        angleBarrel1 += deltaTime;
     }
     // Rotate the cannon of the first tank clockwise (lower it)
     if(window->KeyHold(GLFW_KEY_S))
     {
-        radiansBarrel1 -= deltaTime;
+        angleBarrel1 -= deltaTime;
     }
 
     // Rotate the cannon of the second tank clockwise (lift it)
     if(window->KeyHold(GLFW_KEY_UP))
     {
-        radiansBarrel2 -= deltaTime;
+        angleBarrel2 -= deltaTime;
     }
     // Rotate the cannon of the second tank counterclockwise (lower it)
     if(window->KeyHold(GLFW_KEY_DOWN))
     {
-        radiansBarrel2 += deltaTime;
+        angleBarrel2 += deltaTime;
+    }
+
+    // Tank movement
+    // Move the first tank to the left
+    if(window->KeyHold(GLFW_KEY_A))
+    {
+        tank1X -= deltaTime * 100;
+        changeTank1Orientation();
+    }
+    // Move the first tank to the right
+    if(window->KeyHold(GLFW_KEY_D))
+    {
+        tank1X += deltaTime * 100;
+        changeTank1Orientation();
+    }
+
+    // Move the second tank to the left
+    if(window->KeyHold(GLFW_KEY_LEFT))
+    {
+        tank2X -= deltaTime * 100;
+        changeTank2Orientation();
+    }
+    // Move the second tank to the right
+    if(window->KeyHold(GLFW_KEY_RIGHT))
+    {
+        tank2X += deltaTime * 100;
+        changeTank2Orientation();
     }
 }
 

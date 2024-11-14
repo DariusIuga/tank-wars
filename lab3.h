@@ -39,7 +39,8 @@ namespace m1
             xValues.reserve(nrPoints);
             yValues.reserve(nrPoints);
 
-            const float step = static_cast<float>(resolution.x) / static_cast<float>(nrPoints - 1);
+            const float step = static_cast<float>(resolution.x) / static_cast<
+                float>(nrPoints - 1);
 
             for (int i = 0; i < nrPoints; ++i)
             {
@@ -61,6 +62,13 @@ namespace m1
                 xValues[i] = x;
                 yValues[i] = y;
             }
+
+            // Now we calculate the coordinates of the tanks
+            // The first one will be placed on the left, the second one on the right
+            tank1X = xValues[nrPoints / 10];
+            tank1Y = yValues[nrPoints / 10];
+            tank2X = xValues[nrPoints - nrPoints / 10];
+            tank2Y = yValues[nrPoints - nrPoints / 10];
         }
 
         // Function that takes 3 color arguments and returns a glm::vec3
@@ -68,6 +76,44 @@ namespace m1
         static glm::vec3 rgbToVec3(const int r, const int g, const int b)
         {
             return {r / 256.0, g / 256.0, b / 256.0};
+        }
+
+        void changeTank1Orientation()
+        {
+            // Find the 2 points whose x values surround the tank
+            int i = 0;
+            while (xValues[i] < tank1X)
+            {
+                i++;
+            }
+            // Point A is at i-1, point B is at i
+            // The tank is between A and B
+
+            // Update the tank's y coordinate to remain on the ground
+            // float t = (tank1Y - yValues[i - 1]) / (yValues[i] - yValues[i - 1]);
+            // tank1Y = yValues[i - 1] + t * (yValues[i] - yValues[i - 1]);
+            tank1Y = std::min(yValues[i - 1], yValues[i]);
+
+            // We calculate the angle of the tangent in the point i
+            angleTank1 = atan2(yValues[i] - yValues[i - 1],
+                               xValues[i] - xValues[i - 1]);
+        }
+
+        // Do the same for the second tank
+        void changeTank2Orientation()
+        {
+            int i = 0;
+            while (xValues[i] < tank2X)
+            {
+                i++;
+            }
+            // Point A is at i-1, point B is at i
+            // The tank is between A and B
+
+            tank2Y = std::min(yValues[i - 1], yValues[i]);
+
+            angleTank2 = atan2(yValues[i] - yValues[i - 1],
+                               xValues[i] - xValues[i - 1]);
         }
 
     protected:
@@ -87,20 +133,30 @@ namespace m1
 
         constexpr static int nrTrianglesCircle = 100;
         // First trapezoid
-        constexpr static int trackWidth = 60;
-        constexpr static int trackHeight = 20;
+        constexpr static int trackWidth = 30;
+        constexpr static int trackHeight = 10;
 
         // Second trapezoid
-        constexpr static int armorWidth = 90;
-        constexpr static int armorHeight = 30;
+        constexpr static int armorWidth = 45;
+        constexpr static int armorHeight = 15;
 
-        constexpr static int turretRadius = 30;
+        constexpr static int turretRadius = 20;
         constexpr static int barrelWidth = 3;
-        constexpr static int barrelLength = 100;
+        constexpr static int barrelLength = 40;
         constexpr static int projectileRadius = 5;
 
         // Barrel rotation
-        float radiansBarrel1;
-        float radiansBarrel2;
+        float angleBarrel1;
+        float angleBarrel2;
+
+        // Coordinates of the tanks (from the middle of the bottom side)
+        float tank1X;
+        float tank1Y;
+        float tank2X;
+        float tank2Y;
+
+        // Angles of the tanks
+        float angleTank1;
+        float angleTank2;
     };
 } // namespace m1
