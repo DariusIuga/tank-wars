@@ -2,6 +2,7 @@
 
 #include <vector>
 #include <iostream>
+#include <cmath>
 
 #include "lab_m1/lab3/transform2D.h"
 #include "lab_m1/lab3/object2D.h"
@@ -9,29 +10,25 @@
 using namespace std;
 using namespace m1;
 
-
 /*
  *  To find out more about `FrameStart`, `Update`, `FrameEnd`
  *  and the order in which they are called, see `world.cpp`.
  */
 
-
 Lab3::Lab3()
 {
-    dirY = UP;
-    size = UP;
 }
 
-
 Lab3::~Lab3()
-{}
-
+{
+}
 
 void Lab3::Init()
 {
-    glm::ivec2 resolution = window->GetResolution();
+    resolution = window->GetResolution();
     auto camera = GetSceneCamera();
-    camera->SetOrthographic(0, (float)resolution.x, 0, (float)resolution.y, 0.01f, 400);
+    camera->SetOrthographic(0, (float)resolution.x, 0, (float)resolution.y,
+                            0.01f, 400);
     camera->SetPosition(glm::vec3(0, 0, 50));
     camera->SetRotation(glm::vec3(0, 0, 0));
     camera->Update();
@@ -39,27 +36,16 @@ void Lab3::Init()
 
     CreateHeightMap(nrPoints);
 
-    glm::vec3 corner = glm::vec3(0, 0, 0);
-    float squareSide = 100;
-
-    cx = corner.x + (squareSide - corner.x) / 2;
-    cy = corner.y + (squareSide - corner.y) / 2;
-
-    translateX = 0;
-    translateY = 0;
-    scaleX = 1;
-    scaleY = 1;
-    angularStep = 0;
-
     // Create vertices for the triangle strip
     vector<VertexFormat> vertices;
     vertices.reserve(yValues.size() * 2);
 
-    glm::vec3 groundColor(1.0 / 255 * 120, 1.0 / 255 * 150, 1.0 / 255 * 100);
+    glm::vec3 groundColor = rgbToVec3(120, 150, 100);
 
-    for (int i = 0;i< nrPoints; i++)
+    for (int i = 0; i < nrPoints; i++)
     {
-        vertices.emplace_back(glm::vec3(xValues[i], yValues[i], 0), groundColor);
+        vertices.emplace_back(glm::vec3(xValues[i], yValues[i], 0),
+                              groundColor);
         vertices.emplace_back(glm::vec3(xValues[i], 0, 0), groundColor);
     }
 
@@ -76,14 +62,145 @@ void Lab3::Init()
     triangleStrip->SetDrawMode(GL_TRIANGLE_STRIP);
     triangleStrip->InitFromData(vertices, indices);
     AddMeshToList(triangleStrip);
-}
 
+    // Draw 2 trapezoids in opposite directions, one on top of the other
+    // The trapezoids are drawn using 2 triangles each. They should look like
+    // the base of a tank.
+
+    vector<VertexFormat> tank1BaseVertices;
+    vector<VertexFormat> tank2BaseVertices;
+    glm::vec3 tank1TrackColor = rgbToVec3(3, 1, 77);
+    glm::vec3 tank2TrackColor = rgbToVec3(77, 1, 1);
+
+    // Add points for the lower trapezoid
+    tank1BaseVertices.emplace_back(glm::vec3(-trackWidth, 0, 0),
+                                   tank1TrackColor);
+    tank1BaseVertices.
+        emplace_back(glm::vec3(trackWidth, 0, 0), tank1TrackColor);
+    tank1BaseVertices.emplace_back(glm::vec3(-trackWidth - 10, trackHeight, 0),
+                                   tank1TrackColor);
+    tank1BaseVertices.emplace_back(glm::vec3(trackWidth + 10, trackHeight, 0),
+                                   tank1TrackColor);
+
+    tank2BaseVertices.emplace_back(glm::vec3(-trackWidth, 0, 0),
+                                   tank2TrackColor);
+    tank2BaseVertices.
+        emplace_back(glm::vec3(trackWidth, 0, 0), tank2TrackColor);
+    tank2BaseVertices.emplace_back(glm::vec3(-trackWidth - 10, trackHeight, 0),
+                                   tank2TrackColor);
+    tank2BaseVertices.emplace_back(glm::vec3(trackWidth + 10, trackHeight, 0),
+                                   tank2TrackColor);
+
+    glm::vec3 tank1ArmorColor = rgbToVec3(46, 41, 196);
+    glm::vec3 tank2ArmorColor = rgbToVec3(196, 41, 62);
+
+    // Add points for the upper trapezoid
+    tank1BaseVertices.emplace_back(glm::vec3(-armorWidth, trackHeight, 0),
+                                   tank1ArmorColor);
+    tank1BaseVertices.emplace_back(glm::vec3(armorWidth, trackHeight, 0),
+                                   tank1ArmorColor);
+    tank1BaseVertices.emplace_back(
+        glm::vec3(-armorWidth + 20, armorHeight + trackHeight, 0),
+        tank1ArmorColor);
+    tank1BaseVertices.emplace_back(
+        glm::vec3(armorWidth - 20, armorHeight + trackHeight, 0),
+        tank1ArmorColor);
+
+    tank2BaseVertices.emplace_back(glm::vec3(-armorWidth, trackHeight, 0),
+                                   tank2ArmorColor);
+    tank2BaseVertices.emplace_back(glm::vec3(armorWidth, trackHeight, 0),
+                                   tank2ArmorColor);
+    tank2BaseVertices.emplace_back(
+    glm::vec3(-armorWidth + 20, armorHeight + trackHeight, 0),
+    tank2ArmorColor);
+    tank2BaseVertices.emplace_back(
+        glm::vec3(armorWidth - 20, armorHeight + trackHeight, 0),
+        tank2ArmorColor);
+
+    // Indices for both bases
+    vector<unsigned int> tankBaseIndices = {
+        2, 1, 0, 2, 3, 1,
+        6, 5, 4, 6, 7, 5
+    };
+
+    Mesh* tank1 = new Mesh("tank1_base");
+    tank1->SetDrawMode(GL_TRIANGLES);
+    tank1->InitFromData(tank1BaseVertices, tankBaseIndices);
+    AddMeshToList(tank1);
+
+    Mesh* tank2 = new Mesh("tank2_base");
+    tank2->SetDrawMode(GL_TRIANGLES);
+    tank2->InitFromData(tank2BaseVertices, tankBaseIndices);
+    AddMeshToList(tank2);
+
+    // Create another mesh for the turret of the tank
+    // It will be a semicircle on top of the tank base
+    // Use the GL_TRIANGLE_FAN draw mode and the nrTrianglesCircle variable
+
+    vector<VertexFormat> turret1Vertices;
+    vector<VertexFormat> turret2Vertices;
+    turret1Vertices.emplace_back(glm::vec3(0, 50, 0), tank1ArmorColor);
+    turret2Vertices.emplace_back(glm::vec3(0, 50, 0), tank2ArmorColor);
+    for (int i = 0; i <= nrTrianglesCircle; i++)
+    {
+        float angle = M_PI / nrTrianglesCircle * (i + 0.5);
+        turret1Vertices.emplace_back(
+            glm::vec3(turretRadius * cos(angle), turretRadius * sin(angle) + 40,
+                      0),
+            tank1ArmorColor);
+        turret2Vertices.emplace_back(
+            glm::vec3(turretRadius * cos(angle), turretRadius * sin(angle) + 40,
+                      0),
+            tank2ArmorColor);
+    }
+
+    // Inidices for both turrets
+    vector<unsigned int> turretIndices;
+    for (int i = 1; i <= nrTrianglesCircle; i++)
+    {
+        turretIndices.push_back(i);
+    }
+    turretIndices.push_back(1);
+
+    Mesh* turret1 = new Mesh("turret1");
+    turret1->SetDrawMode(GL_TRIANGLE_FAN);
+    turret1->InitFromData(turret1Vertices, turretIndices);
+    AddMeshToList(turret1);
+
+    Mesh* turret2 = new Mesh("turret2");
+    turret2->SetDrawMode(GL_TRIANGLE_FAN);
+    turret2->InitFromData(turret2Vertices, turretIndices);
+    AddMeshToList(turret2);
+
+    // Create a mesh for the cannon of the tank
+    // It will be a slim rectangle that starts from the turret center, made of
+    // 2 triangles
+    vector<VertexFormat> cannonVertices;
+    glm::vec3 cannonColor = rgbToVec3(50, 50, 50);
+
+    cannonVertices.emplace_back(glm::vec3(-barrelWidth, 0, 0), cannonColor);
+    cannonVertices.emplace_back(glm::vec3(barrelWidth, 0, 0), cannonColor);
+    cannonVertices.emplace_back(glm::vec3(-barrelWidth, barrelLength, 0),
+                                cannonColor);
+    cannonVertices.emplace_back(glm::vec3(barrelWidth, barrelLength, 0),
+                                cannonColor);
+
+    vector<unsigned int> cannonIndices = {
+        2, 1, 0, 2, 3, 1
+    };
+
+    Mesh* cannon = new Mesh("cannon");
+    cannon->SetDrawMode(GL_TRIANGLES);
+    cannon->InitFromData(cannonVertices, cannonIndices);
+    AddMeshToList(cannon);
+}
 
 void Lab3::FrameStart()
 {
-    glm::vec3 skyColor(1.0 / 255 * 135, 1.0 / 255 * 206, 1.0 / 255 * 255);
     // Clears the color buffer (using the previously set color) and depth buffer
-    glClearColor(skyColor.r, skyColor.g, skyColor.b, 1);
+    // Sky color
+    glm::vec3 clearColor = rgbToVec3(100, 200, 256);
+    glClearColor(clearColor.r, clearColor.g, clearColor.b, 1);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     glm::ivec2 resolution = window->GetResolution();
@@ -91,88 +208,79 @@ void Lab3::FrameStart()
     glViewport(0, 0, resolution.x, resolution.y);
 }
 
-
 void Lab3::Update(float deltaTimeSeconds)
 {
     // Update translation
     modelMatrix = glm::mat3(1);
 
-    // modelMatrix *= transform2D::Translate(150, 250);
-
-    // switch (dirY)
-    // {
-    // case UP:
-    // {
-    //     translateY += 100 * deltaTimeSeconds; // Move up
-    //     break;
-    // }
-    // case DOWN:
-    // {
-    //     translateY -= 100 * deltaTimeSeconds; // Move down
-    //     break;
-    // }
-    // }
-    // if (translateY > 200)
-    // {
-    //     dirY = DOWN;
-    // }
-    // if (translateY < -200)
-    // {
-    //     dirY = UP;
-    // }
-    // modelMatrix *= transform2D::Translate(0, translateY);
-
+    // Render triangle strip
     RenderMesh2D(meshes["triangle_strip"], shaders["VertexColor"], modelMatrix);
+
+    // Model matrix for the first tank
+    glm::mat3 tank1ModelMatrix = glm::mat3(1);
+    tank1ModelMatrix *= transform2D::Translate(resolution.x / 2, 700);
+    // Render tank 1 base
+    RenderMesh2D(meshes["tank1_base"], shaders["VertexColor"],
+                 tank1ModelMatrix);
+    // Render tank 1 turret
+    RenderMesh2D(meshes["turret1"], shaders["VertexColor"], tank1ModelMatrix);
+    // Render tank 1 cannon
+    RenderMesh2D(meshes["cannon"], shaders["VertexColor"], tank1ModelMatrix);
+
+    // Model matrix for the second tank
+    glm::mat3 tank2ModelMatrix = glm::mat3(1);
+    tank2ModelMatrix *= transform2D::Translate(resolution.x - 300, 700);
+    // Render tank 2 base
+    RenderMesh2D(meshes["tank2_base"], shaders["VertexColor"],
+                 tank2ModelMatrix);
+    // Render tank 2 turret
+    RenderMesh2D(meshes["turret2"], shaders["VertexColor"], tank2ModelMatrix);
+    // Render tank 2 cannon
+    RenderMesh2D(meshes["cannon"], shaders["VertexColor"], tank2ModelMatrix);
 }
 
-
 void Lab3::FrameEnd()
-{}
-
+{
+}
 
 /*
  *  These are callback functions. To find more about callbacks and
  *  how they behave, see `input_controller.h`.
  */
 
-
 void Lab3::OnInputUpdate(float deltaTime, int mods)
-{}
-
+{
+}
 
 void Lab3::OnKeyPress(int key, int mods)
 {
     // Add key press event
 }
 
-
 void Lab3::OnKeyRelease(int key, int mods)
 {
     // Add key release event
 }
-
 
 void Lab3::OnMouseMove(int mouseX, int mouseY, int deltaX, int deltaY)
 {
     // Add mouse move event
 }
 
-
 void Lab3::OnMouseBtnPress(int mouseX, int mouseY, int button, int mods)
 {
     // Add mouse button press event
 }
-
 
 void Lab3::OnMouseBtnRelease(int mouseX, int mouseY, int button, int mods)
 {
     // Add mouse button release event
 }
 
-
 void Lab3::OnMouseScroll(int mouseX, int mouseY, int offsetX, int offsetY)
-{}
-
+{
+}
 
 void Lab3::OnWindowResize(int width, int height)
-{}
+{
+}
