@@ -11,7 +11,7 @@ namespace m1
     {
     public:
         Lab3();
-        ~Lab3();
+        ~Lab3() override;
 
         void Init() override;
 
@@ -39,38 +39,28 @@ namespace m1
             xValues.reserve(nrPoints);
             yValues.reserve(nrPoints);
 
-            double step = (double)resolution.x / (double)(nrPoints - 1);
-            double periodLenghtening = 300;
+            const float step = static_cast<float>(resolution.x) / static_cast<float>(nrPoints - 1);
 
             for (int i = 0; i < nrPoints; ++i)
             {
-                double x = i * step;
-                std::cout << x << " " << std::endl;
+                constexpr float periodLengthening = 300;
+                const float x = static_cast<float>(i) * step;
                 // Increase the period of the function
-                double t = x / periodLenghtening;
+                const float t = x / periodLengthening;
 
                 // Fourier series used to generate the height map
-                double y = 4 * sin(t) + 2 * sin(
+                float y = 4 * sin(t) + 2 * sin(
                     2 * t) + 1.5 * sin(
                     3 * t) + 1 * sin(5 * t) + 0.5 * sin(10 * t) + 0.2 * sin(
                     20 * t);
                 // Make the change in height more drastic
                 y *= 30;
 
-                y += (double)resolution.y / 2;
+                y += static_cast<float>(resolution.y) / 2;
 
                 xValues[i] = x;
                 yValues[i] = y;
             }
-
-            // Print the height map
-            for (auto point : yValues)
-            {
-                std::cout << point << " " << std::endl;
-            }
-
-            // Print width and height of the window
-            std::cout << resolution.x << " " << resolution.y << std::endl;
         }
 
         // Function that takes 3 color arguments and returns a glm::vec3
@@ -81,18 +71,18 @@ namespace m1
         }
 
     protected:
-        float cx, cy;
-        glm::mat3 modelMatrix;
-        float translateX, translateY;
-        float scaleX, scaleY;
-        float angularStep;
+        float cx{}, cy{};
+        glm::mat3 modelMatrix{};
+        float translateX{}, translateY{};
+        float scaleX{}, scaleY{};
+        float angularStep{};
 
         // TODO(student): If you need any other class variables, define them here.
-        glm::ivec2 resolution;
+        glm::ivec2 resolution{};
 
         // Used for the height map
-        std::vector<double> xValues;
-        std::vector<double> yValues;
+        std::vector<float> xValues;
+        std::vector<float> yValues;
         constexpr static int nrPoints = 300;
 
         constexpr static int nrTrianglesCircle = 100;

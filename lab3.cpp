@@ -1,7 +1,6 @@
 #include "lab_m1/lab3/lab3.h"
 
 #include <vector>
-#include <iostream>
 #include <cmath>
 
 #include "lab_m1/lab3/transform2D.h"
@@ -22,14 +21,13 @@ Lab3::Lab3()
 }
 
 Lab3::~Lab3()
-{
-}
+= default;
 
 void Lab3::Init()
 {
     resolution = window->GetResolution();
     auto camera = GetSceneCamera();
-    camera->SetOrthographic(0, (float)resolution.x, 0, (float)resolution.y,
+    camera->SetOrthographic(0, static_cast<float>(resolution.x), 0, static_cast<float>(resolution.y),
                             0.01f, 400);
     camera->SetPosition(glm::vec3(0, 0, 50));
     camera->SetRotation(glm::vec3(0, 0, 0));
@@ -156,7 +154,7 @@ void Lab3::Init()
             tank2ArmorColor);
     }
 
-    // Inidices for both turrets
+    // Indices for both turrets
     vector<unsigned int> turretIndices;
     for (int i = 1; i <= nrTrianglesCircle; i++)
     {
@@ -201,11 +199,11 @@ void Lab3::FrameStart()
 {
     // Clears the color buffer (using the previously set color) and depth buffer
     // Sky color
-    glm::vec3 clearColor = rgbToVec3(100, 200, 256);
+    const glm::vec3 clearColor = rgbToVec3(100, 200, 256);
     glClearColor(clearColor.r, clearColor.g, clearColor.b, 1);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    glm::ivec2 resolution = window->GetResolution();
+    const glm::ivec2 resolution = window->GetResolution();
     // Sets the screen area where to draw
     glViewport(0, 0, resolution.x, resolution.y);
 }
@@ -220,7 +218,7 @@ void Lab3::Update(float deltaTimeSeconds)
 
     // Model matrix for the first tank
     glm::mat3 tank1ModelMatrix = glm::mat3(1);
-    tank1ModelMatrix *= transform2D::Translate(resolution.x / 2, 700);
+    tank1ModelMatrix *= transform2D::Translate(static_cast<float>(resolution.x) / 2, 700);
     // Render tank 1 base
     RenderMesh2D(meshes["tank1_base"], shaders["VertexColor"],
                  tank1ModelMatrix);
@@ -235,7 +233,7 @@ void Lab3::Update(float deltaTimeSeconds)
 
     // Model matrix for the second tank
     glm::mat3 tank2ModelMatrix = glm::mat3(1);
-    tank2ModelMatrix *= transform2D::Translate(resolution.x - 300, 700);
+    tank2ModelMatrix *= transform2D::Translate(static_cast<float>(resolution.x) - 300, 700);
     // Render tank 2 base
     RenderMesh2D(meshes["tank2_base"], shaders["VertexColor"],
                  tank2ModelMatrix);
