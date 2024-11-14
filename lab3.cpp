@@ -17,6 +17,8 @@ using namespace m1;
 
 Lab3::Lab3()
 {
+    radiansBarrel1 = 0;
+    radiansBarrel2 = 0;
 }
 
 Lab3::~Lab3()
@@ -224,8 +226,12 @@ void Lab3::Update(float deltaTimeSeconds)
                  tank1ModelMatrix);
     // Render tank 1 turret
     RenderMesh2D(meshes["turret1"], shaders["VertexColor"], tank1ModelMatrix);
+
+    glm::mat3 cannon1ModelMatrix = tank1ModelMatrix;
+    cannon1ModelMatrix *= transform2D::Translate(0, trackHeight + armorHeight);
+    cannon1ModelMatrix *= transform2D::Rotate(radiansBarrel1);
     // Render tank 1 cannon
-    RenderMesh2D(meshes["cannon"], shaders["VertexColor"], tank1ModelMatrix);
+    RenderMesh2D(meshes["cannon"], shaders["VertexColor"], cannon1ModelMatrix);
 
     // Model matrix for the second tank
     glm::mat3 tank2ModelMatrix = glm::mat3(1);
@@ -235,8 +241,12 @@ void Lab3::Update(float deltaTimeSeconds)
                  tank2ModelMatrix);
     // Render tank 2 turret
     RenderMesh2D(meshes["turret2"], shaders["VertexColor"], tank2ModelMatrix);
+
+    glm::mat3 cannon2ModelMatrix = tank2ModelMatrix;
+    cannon2ModelMatrix *= transform2D::Translate(0, trackHeight + armorHeight);
+    cannon2ModelMatrix *= transform2D::Rotate(radiansBarrel2);
     // Render tank 2 cannon
-    RenderMesh2D(meshes["cannon"], shaders["VertexColor"], tank2ModelMatrix);
+    RenderMesh2D(meshes["cannon"], shaders["VertexColor"], cannon2ModelMatrix);
 }
 
 void Lab3::FrameEnd()
@@ -250,6 +260,27 @@ void Lab3::FrameEnd()
 
 void Lab3::OnInputUpdate(float deltaTime, int mods)
 {
+    // Rotate the cannon of the first tank counterclockwise (lift it)
+    if(window->KeyHold(GLFW_KEY_W))
+    {
+        radiansBarrel1 += deltaTime;
+    }
+    // Rotate the cannon of the first tank clockwise (lower it)
+    if(window->KeyHold(GLFW_KEY_S))
+    {
+        radiansBarrel1 -= deltaTime;
+    }
+
+    // Rotate the cannon of the second tank clockwise (lift it)
+    if(window->KeyHold(GLFW_KEY_UP))
+    {
+        radiansBarrel2 -= deltaTime;
+    }
+    // Rotate the cannon of the second tank counterclockwise (lower it)
+    if(window->KeyHold(GLFW_KEY_DOWN))
+    {
+        radiansBarrel2 += deltaTime;
+    }
 }
 
 void Lab3::OnKeyPress(int key, int mods)

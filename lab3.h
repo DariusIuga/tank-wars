@@ -24,13 +24,13 @@ namespace m1
         void OnKeyPress(int key, int mods) override;
         void OnKeyRelease(int key, int mods) override;
         void OnMouseMove(int mouseX, int mouseY, int deltaX,
-            int deltaY) override;
+                         int deltaY) override;
         void OnMouseBtnPress(int mouseX, int mouseY, int button,
-            int mods) override;
+                             int mods) override;
         void OnMouseBtnRelease(int mouseX, int mouseY, int button,
-            int mods) override;
+                               int mods) override;
         void OnMouseScroll(int mouseX, int mouseY, int offsetX,
-            int offsetY) override;
+                           int offsetY) override;
         void OnWindowResize(int width, int height) override;
 
 
@@ -52,8 +52,8 @@ namespace m1
                 // Fourier series used to generate the height map
                 double y = 4 * sin(t) + 2 * sin(
                     2 * t) + 1.5 * sin(
-                        3 * t) + 1 * sin(5 * t) + 0.5 * sin(10 * t) + 0.2 * sin(
-                            20 * t);
+                    3 * t) + 1 * sin(5 * t) + 0.5 * sin(10 * t) + 0.2 * sin(
+                    20 * t);
                 // Make the change in height more drastic
                 y *= 30;
 
@@ -75,7 +75,7 @@ namespace m1
 
         // Function that takes 3 color arguments and returns a glm::vec3
         // glm::vec3 groundColor(1.0 / 255 * 120, 1.0 / 255 * 150, 1.0 / 255 * 100);
-        static glm::vec3 rgbToVec3(const int r,const int g,const int b)
+        static glm::vec3 rgbToVec3(const int r, const int g, const int b)
         {
             return {r / 256.0, g / 256.0, b / 256.0};
         }
@@ -108,5 +108,9 @@ namespace m1
         constexpr static int barrelWidth = 3;
         constexpr static int barrelLength = 100;
         constexpr static int projectileRadius = 5;
+
+        // Barrel rotation
+        float radiansBarrel1;
+        float radiansBarrel2;
     };
 } // namespace m1
