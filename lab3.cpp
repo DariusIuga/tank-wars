@@ -44,7 +44,7 @@ void Lab3::Init()
     vector<VertexFormat> vertices;
     vertices.reserve(yValues.size() * 2);
 
-    glm::vec3 groundColor = rgbToVec3(120, 150, 100);
+    glm::vec3 groundColor = rgbToVec3(30, 117, 32);
 
     for (int i = 0; i < nrPoints; i++)
     {
@@ -74,7 +74,7 @@ void Lab3::Init()
     vector<VertexFormat> tank1BaseVertices;
     vector<VertexFormat> tank2BaseVertices;
     glm::vec3 tank1TrackColor = rgbToVec3(3, 1, 77);
-    glm::vec3 tank2TrackColor = rgbToVec3(77, 1, 1);
+    glm::vec3 tank2TrackColor = rgbToVec3(77, 1, 3);
 
     // Add points for the lower trapezoid
     tank1BaseVertices.emplace_back(glm::vec3(-trackWidth, 0, 0),
@@ -95,14 +95,14 @@ void Lab3::Init()
     tank2BaseVertices.emplace_back(glm::vec3(trackWidth + 10, trackHeight, 0),
                                    tank2TrackColor);
 
-    glm::vec3 tank1ArmorColor = rgbToVec3(46, 41, 196);
-    glm::vec3 tank2ArmorColor = rgbToVec3(196, 41, 62);
+    glm::vec3 tank1ArmorColor = rgbToVec3(96, 93, 245);
+    glm::vec3 tank2ArmorColor = rgbToVec3(245, 93, 96);
 
     // Add points for the upper trapezoid
     tank1BaseVertices.emplace_back(glm::vec3(-armorWidth, trackHeight, 0),
-                                   tank1ArmorColor);
+                                   tank1TrackColor);
     tank1BaseVertices.emplace_back(glm::vec3(armorWidth, trackHeight, 0),
-                                   tank1ArmorColor);
+                                   tank1TrackColor);
     tank1BaseVertices.emplace_back(
         glm::vec3(-armorWidth + 20, armorHeight + trackHeight, 0),
         tank1ArmorColor);
@@ -111,9 +111,9 @@ void Lab3::Init()
         tank1ArmorColor);
 
     tank2BaseVertices.emplace_back(glm::vec3(-armorWidth, trackHeight, 0),
-                                   tank2ArmorColor);
+                                   tank2TrackColor);
     tank2BaseVertices.emplace_back(glm::vec3(armorWidth, trackHeight, 0),
-                                   tank2ArmorColor);
+                                   tank2TrackColor);
     tank2BaseVertices.emplace_back(
     glm::vec3(-armorWidth + 20, armorHeight + trackHeight, 0),
     tank2ArmorColor);
@@ -197,13 +197,34 @@ void Lab3::Init()
     cannon->SetDrawMode(GL_TRIANGLES);
     cannon->InitFromData(cannonVertices, cannonIndices);
     AddMeshToList(cannon);
+
+    // Draw the sun
+    glm::vec3 sunColor = rgbToVec3(255, 255, 0);
+    vector<VertexFormat> sunVertices;
+    sunVertices.emplace_back(glm::vec3(0, 0, 0), sunColor);
+    for (int i = 0; i <= nrTrianglesCircle; i++)
+    {
+        float angle = 2 * M_PI / nrTrianglesCircle * i;
+        sunVertices.emplace_back(glm::vec3(sunRadius * cos(angle), sunRadius * sin(angle), 0), sunColor);
+    }
+
+    vector<unsigned int> sunIndices;
+    for (int i = 1; i <= nrTrianglesCircle; i++)
+    {
+        sunIndices.push_back(i);
+    }
+
+    Mesh* sun = new Mesh("sun");
+    sun->SetDrawMode(GL_TRIANGLE_FAN);
+    sun->InitFromData(sunVertices, sunIndices);
+    AddMeshToList(sun);
 }
 
 void Lab3::FrameStart()
 {
     // Clears the color buffer (using the previously set color) and depth buffer
     // Sky color
-    const glm::vec3 clearColor = rgbToVec3(100, 200, 256);
+    const glm::vec3 clearColor = rgbToVec3(45, 175, 250);
     glClearColor(clearColor.r, clearColor.g, clearColor.b, 1);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -255,6 +276,12 @@ void Lab3::Update(float deltaTimeSeconds)
     cannon2ModelMatrix *= transform2D::Rotate(angleBarrel2);
     // Render tank 2 cannon
     RenderMesh2D(meshes["cannon"], shaders["VertexColor"], cannon2ModelMatrix);
+
+
+    // Render the sun
+    glm::mat3 sunModelMatrix = glm::mat3(1);
+    sunModelMatrix *= transform2D::Translate(resolution.x, resolution.y);
+    RenderMesh2D(meshes["sun"], shaders["VertexColor"], sunModelMatrix);
 }
 
 void Lab3::FrameEnd()

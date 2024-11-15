@@ -129,7 +129,7 @@ namespace m1
         // Used for the height map
         std::vector<float> xValues;
         std::vector<float> yValues;
-        constexpr static int nrPoints = 300;
+        constexpr static int nrPoints = 1000;
 
         constexpr static int nrTrianglesCircle = 100;
         // First trapezoid
@@ -137,8 +137,8 @@ namespace m1
         constexpr static int trackHeight = 10;
 
         // Second trapezoid
-        constexpr static int armorWidth = 45;
-        constexpr static int armorHeight = 15;
+        constexpr static int armorWidth = 50;
+        constexpr static int armorHeight = 20;
 
         constexpr static int turretRadius = 20;
         constexpr static int barrelWidth = 3;
@@ -158,5 +158,7 @@ namespace m1
         // Angles of the tanks
         float angleTank1;
         float angleTank2;
+
+        constexpr static int sunRadius = 200;
     };
 } // namespace m1
