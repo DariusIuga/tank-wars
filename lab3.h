@@ -160,5 +160,9 @@ namespace m1
         float angleTank2;
 
         constexpr static int sunRadius = 200;
+        constexpr static int moonRadius = 100;
+        bool isDay;
+        constexpr static int starSideLength = 10;
+        std::vector<glm::mat3> starModelMatrices;
     };
 } // namespace m1

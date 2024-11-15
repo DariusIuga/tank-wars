@@ -22,6 +22,8 @@ Lab3::Lab3()
 
     angleTank1 = 0;
     angleTank2 = 0;
+
+    isDay = true;
 }
 
 Lab3::~Lab3()
@@ -31,7 +33,8 @@ void Lab3::Init()
 {
     resolution = window->GetResolution();
     auto camera = GetSceneCamera();
-    camera->SetOrthographic(0, static_cast<float>(resolution.x), 0, static_cast<float>(resolution.y),
+    camera->SetOrthographic(0, static_cast<float>(resolution.x), 0,
+                            static_cast<float>(resolution.y),
                             0.01f, 400);
     camera->SetPosition(glm::vec3(0, 0, 50));
     camera->SetRotation(glm::vec3(0, 0, 0));
@@ -115,8 +118,8 @@ void Lab3::Init()
     tank2BaseVertices.emplace_back(glm::vec3(armorWidth, trackHeight, 0),
                                    tank2TrackColor);
     tank2BaseVertices.emplace_back(
-    glm::vec3(-armorWidth + 20, armorHeight + trackHeight, 0),
-    tank2ArmorColor);
+        glm::vec3(-armorWidth + 20, armorHeight + trackHeight, 0),
+        tank2ArmorColor);
     tank2BaseVertices.emplace_back(
         glm::vec3(armorWidth - 20, armorHeight + trackHeight, 0),
         tank2ArmorColor);
@@ -143,17 +146,21 @@ void Lab3::Init()
 
     vector<VertexFormat> turret1Vertices;
     vector<VertexFormat> turret2Vertices;
-    turret1Vertices.emplace_back(glm::vec3(0, trackHeight + armorHeight, 0), tank1ArmorColor);
-    turret2Vertices.emplace_back(glm::vec3(0, trackHeight + armorHeight, 0), tank2ArmorColor);
+    turret1Vertices.emplace_back(glm::vec3(0, trackHeight + armorHeight, 0),
+                                 tank1ArmorColor);
+    turret2Vertices.emplace_back(glm::vec3(0, trackHeight + armorHeight, 0),
+                                 tank2ArmorColor);
     for (int i = 0; i <= nrTrianglesCircle; i++)
     {
         float angle = M_PI / nrTrianglesCircle * (i + 0.5);
         turret1Vertices.emplace_back(
-            glm::vec3(turretRadius * cos(angle), turretRadius * sin(angle) + trackHeight + armorHeight - 5,
+            glm::vec3(turretRadius * cos(angle),
+                      turretRadius * sin(angle) + trackHeight + armorHeight - 5,
                       0),
             tank1ArmorColor);
         turret2Vertices.emplace_back(
-            glm::vec3(turretRadius * cos(angle), turretRadius * sin(angle) + trackHeight + armorHeight - 5,
+            glm::vec3(turretRadius * cos(angle),
+                      turretRadius * sin(angle) + trackHeight + armorHeight - 5,
                       0),
             tank2ArmorColor);
     }
@@ -205,7 +212,9 @@ void Lab3::Init()
     for (int i = 0; i <= nrTrianglesCircle; i++)
     {
         float angle = 2 * M_PI / nrTrianglesCircle * i;
-        sunVertices.emplace_back(glm::vec3(sunRadius * cos(angle), sunRadius * sin(angle), 0), sunColor);
+        sunVertices.emplace_back(
+            glm::vec3(sunRadius * cos(angle), sunRadius * sin(angle), 0),
+            sunColor);
     }
 
     vector<unsigned int> sunIndices;
@@ -218,14 +227,64 @@ void Lab3::Init()
     sun->SetDrawMode(GL_TRIANGLE_FAN);
     sun->InitFromData(sunVertices, sunIndices);
     AddMeshToList(sun);
+
+    // Draw the moon
+    glm::vec3 moonColor = rgbToVec3(220, 220, 220);
+    vector<VertexFormat> moonVertices;
+    moonVertices.emplace_back(glm::vec3(0, 0, 0), moonColor);
+    for (int i = 0; i <= nrTrianglesCircle; i++)
+    {
+        float angle = 2 * M_PI / nrTrianglesCircle * i;
+        moonVertices.emplace_back(
+            glm::vec3(moonRadius * cos(angle), moonRadius * sin(angle), 0),
+            moonColor);
+    }
+
+    vector<unsigned int> moonIndices;
+    for (int i = 1; i <= nrTrianglesCircle; i++)
+    {
+        moonIndices.push_back(i);
+    }
+
+    Mesh* moon = new Mesh("moon");
+    moon->SetDrawMode(GL_TRIANGLE_FAN);
+    moon->InitFromData(moonVertices, moonIndices);
+    AddMeshToList(moon);
+
+    // Draw a star
+    // It's a rhombus made of 2 triangles
+    glm::vec3 starColor = rgbToVec3(255, 255, 255);
+    vector<VertexFormat> starVertices;
+    starVertices.emplace_back(glm::vec3(-starSideLength, 0, 0), starColor);
+    starVertices.emplace_back(glm::vec3(starSideLength, 0, 0), starColor);
+    starVertices.emplace_back(glm::vec3(0, starSideLength, 0), starColor);
+    starVertices.emplace_back(glm::vec3(0, -starSideLength, 0), starColor);
+
+    vector<unsigned int> starIndices = {
+        2, 0, 1, 0, 3, 1
+    };
+
+    Mesh* star = new Mesh("star");
+    star->SetDrawMode(GL_TRIANGLES);
+    star->InitFromData(starVertices, starIndices);
+    AddMeshToList(star);
 }
 
 void Lab3::FrameStart()
 {
     // Clears the color buffer (using the previously set color) and depth buffer
-    // Sky color
-    const glm::vec3 clearColor = rgbToVec3(45, 175, 250);
-    glClearColor(clearColor.r, clearColor.g, clearColor.b, 1);
+    glm::vec3 skyDayColor = rgbToVec3(45, 175, 250);
+    glm::vec3 skyNightColor = rgbToVec3(11, 33, 46);
+    if(isDay)
+    {
+        glClearColor(skyDayColor.r, skyDayColor.g, skyDayColor.b, 1);
+    }
+    else
+    {
+        glClearColor(skyNightColor.r, skyNightColor.g, skyNightColor.b, 1);
+    }
+    // glm::vec3 clearColor = rgbToVec3(45, 175, 250);
+    // glClearColor(clearColor.r, clearColor.g, clearColor.b, 1);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     const glm::ivec2 resolution = window->GetResolution();
@@ -277,11 +336,26 @@ void Lab3::Update(float deltaTimeSeconds)
     // Render tank 2 cannon
     RenderMesh2D(meshes["cannon"], shaders["VertexColor"], cannon2ModelMatrix);
 
+    if(isDay)
+    {
+        // Render the sun
+        glm::mat3 sunModelMatrix = glm::mat3(1);
+        sunModelMatrix *= transform2D::Translate(resolution.x, resolution.y);
+        RenderMesh2D(meshes["sun"], shaders["VertexColor"], sunModelMatrix);
+    }
+    else
+    {
+        // Render the moon
+        glm::mat3 moonModelMatrix = glm::mat3(1);
+        moonModelMatrix *= transform2D::Translate(0, resolution.y);
+        RenderMesh2D(meshes["moon"], shaders["VertexColor"], moonModelMatrix);
 
-    // Render the sun
-    glm::mat3 sunModelMatrix = glm::mat3(1);
-    sunModelMatrix *= transform2D::Translate(resolution.x, resolution.y);
-    RenderMesh2D(meshes["sun"], shaders["VertexColor"], sunModelMatrix);
+        for(auto star : starModelMatrices)
+        {
+            // Render each star
+            RenderMesh2D(meshes["star"], shaders["VertexColor"], star);
+        }
+    }
 }
 
 void Lab3::FrameEnd()
@@ -297,49 +371,49 @@ void Lab3::OnInputUpdate(float deltaTime, int mods)
 {
     // Barrel rotation
     // Rotate the cannon of the first tank counterclockwise (lift it)
-    if(window->KeyHold(GLFW_KEY_W))
+    if (window->KeyHold(GLFW_KEY_W))
     {
         angleBarrel1 += deltaTime;
     }
     // Rotate the cannon of the first tank clockwise (lower it)
-    if(window->KeyHold(GLFW_KEY_S))
+    if (window->KeyHold(GLFW_KEY_S))
     {
         angleBarrel1 -= deltaTime;
     }
 
     // Rotate the cannon of the second tank clockwise (lift it)
-    if(window->KeyHold(GLFW_KEY_UP))
+    if (window->KeyHold(GLFW_KEY_UP))
     {
         angleBarrel2 -= deltaTime;
     }
     // Rotate the cannon of the second tank counterclockwise (lower it)
-    if(window->KeyHold(GLFW_KEY_DOWN))
+    if (window->KeyHold(GLFW_KEY_DOWN))
     {
         angleBarrel2 += deltaTime;
     }
 
     // Tank movement
     // Move the first tank to the left
-    if(window->KeyHold(GLFW_KEY_A))
+    if (window->KeyHold(GLFW_KEY_A))
     {
         tank1X -= deltaTime * 100;
         changeTank1Orientation();
     }
     // Move the first tank to the right
-    if(window->KeyHold(GLFW_KEY_D))
+    if (window->KeyHold(GLFW_KEY_D))
     {
         tank1X += deltaTime * 100;
         changeTank1Orientation();
     }
 
     // Move the second tank to the left
-    if(window->KeyHold(GLFW_KEY_LEFT))
+    if (window->KeyHold(GLFW_KEY_LEFT))
     {
         tank2X -= deltaTime * 100;
         changeTank2Orientation();
     }
     // Move the second tank to the right
-    if(window->KeyHold(GLFW_KEY_RIGHT))
+    if (window->KeyHold(GLFW_KEY_RIGHT))
     {
         tank2X += deltaTime * 100;
         changeTank2Orientation();
@@ -348,7 +422,26 @@ void Lab3::OnInputUpdate(float deltaTime, int mods)
 
 void Lab3::OnKeyPress(int key, int mods)
 {
-    // Add key press event
+    // Toggle day/night
+    if (window->KeyHold(GLFW_KEY_LEFT_SHIFT))
+    {
+        starModelMatrices.clear();
+        isDay = !isDay;
+
+        // Render a random number of stars (between 10 and 30)
+        // Scale them by a random factor (between 0.5 and 1.5)
+        // Draw them at random positions on the upper half of the screen
+        int numStars = rand() % 21 + 10;
+        for (int i = 0; i < numStars; ++i) {
+            float scale = (rand() % 11 + 5) / 10.0f;
+            glm::mat3 starModelMatrix = glm::mat3(1);
+            starModelMatrix *= transform2D::Translate(rand() % resolution.x, rand() % (resolution.y / 2) + (resolution.y / 2));
+            starModelMatrix *= transform2D::Scale(scale, scale);
+            // Save the star mesh in a vector
+            starModelMatrices.push_back(starModelMatrix);
+            RenderMesh2D(meshes["star"], shaders["VertexColor"], starModelMatrix);
+        }
+    }
 }
 
 void Lab3::OnKeyRelease(int key, int mods)
