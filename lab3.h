@@ -4,9 +4,28 @@
 
 #include "components/simple_scene.h"
 
-
 namespace m1
 {
+    class Projectile
+    {
+    public:
+        Projectile(glm::vec2 coordinates, float angle, float magnitude) :
+            coordinates(
+                coordinates), angle(angle), magnitude(magnitude)
+        {
+            direction = glm::vec2(cos(angle), sin(angle)) * magnitude;
+            // Print the direction vector for debugging
+            std::cout << "Direction: " << direction.x << " " << direction.y <<
+                std::endl;
+        }
+
+        glm::vec2 coordinates;
+
+        float angle;
+        float magnitude;
+        glm::vec2 direction{};
+    };
+
     class Lab3 : public gfxc::SimpleScene
     {
     public:
@@ -116,6 +135,59 @@ namespace m1
                                xValues[i] - xValues[i - 1]);
         }
 
+        void updateProjectiles(float deltaTimeSeconds)
+        {
+            // Update the position of all the projectiles and their direction vector
+            for (auto& projectile : projectiles1)
+            {
+                projectile.coordinates += projectile.direction *
+                    deltaTimeSeconds;
+                // Adjust direction vector
+                projectile.direction -= gravity * deltaTimeSeconds;
+            }
+
+            for (auto& projectile : projectiles2)
+            {
+                projectile.coordinates += projectile.direction *
+                    deltaTimeSeconds;
+                projectile.direction -= gravity * deltaTimeSeconds;
+            }
+
+            // // Check for collision with the ground
+            // for (auto& projectile : projectiles1)
+            // {
+            //     for (int i = 0; i < nrPoints - 1; i++)
+            //     {
+            //         if (projectile.coordinates.x > xValues[i] &&
+            //             projectile.coordinates.x < xValues[i + 1])
+            //         {
+            //             // Calculate the y value of the line between the 2 points
+            //             float y = yValues[i] + (yValues[i + 1] - yValues[i]) *
+            //                 (projectile.coordinates.x - xValues[i]) /
+            //                 (xValues[i + 1] - xValues[i]);
+            //             if (projectile.coordinates.y < y)
+            //             {
+            //                 std::cout << "BANG!" << std::endl;
+            //                 explodeProjectile(projectile.coordinates);
+            //             }
+            //         }
+            //     }
+        }
+
+        // void explodeProjectile(glm::vec2 coordinates)
+        // {
+        //     // Lower the height around the blast radius
+        //     for (int i = 0; i < nrPoints; i++)
+        //     {
+        //         glm::vec2 distance = glm::vec2(xValues[i], yValues[i]) - coordinates;
+        //         if (glm::distance(glm::vec2(xValues[i], yValues[i]), coordinates) <
+        //             blastRadius)
+        //         {
+        //             yValues[i] -= 50;
+        //         }
+        //     }
+        // }
+
     protected:
         float cx{}, cy{};
         glm::mat3 modelMatrix{};
@@ -158,6 +230,12 @@ namespace m1
         // Angles of the tanks
         float angleTank1;
         float angleTank2;
+
+        // Keep track of projectiles for the tanks
+        std::vector<Projectile> projectiles1;
+        std::vector<Projectile> projectiles2;
+        const glm::vec2 gravity{0, 500};
+        constexpr static int blastRadius = 50;
 
         constexpr static int sunRadius = 200;
         constexpr static int moonRadius = 100;

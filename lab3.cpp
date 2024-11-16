@@ -5,7 +5,6 @@
 
 #include "lab_m1/lab3/transform2D.h"
 #include "lab_m1/lab3/object2D.h"
-#include "lab_m1/lab4/transform3D.h"
 
 using namespace std;
 using namespace m1;
@@ -24,6 +23,10 @@ Lab3::Lab3()
     angleTank2 = 0;
 
     isDay = true;
+
+    // Reserve some memory for the projectiles
+    projectiles1.reserve(16);
+    projectiles2.reserve(16);
 }
 
 Lab3::~Lab3()
@@ -268,6 +271,33 @@ void Lab3::Init()
     star->SetDrawMode(GL_TRIANGLES);
     star->InitFromData(starVertices, starIndices);
     AddMeshToList(star);
+
+    // Mesh for the tank's projectile
+    glm::vec3 projectileColor = rgbToVec3(0, 0, 0);
+    vector<VertexFormat> projectileVertices;
+    projectileVertices.emplace_back(glm::vec3(0, 0, 0),
+                                    projectileColor);
+    for (int i = 0; i <= nrTrianglesCircle; i++)
+    {
+        float angle = 2 * M_PI / nrTrianglesCircle * i;
+        projectileVertices.emplace_back(
+            glm::vec3(projectileRadius * cos(angle),
+                      projectileRadius * sin(angle), 0),
+            projectileColor);
+    }
+
+    vector<unsigned int> projectileIndices;
+    for (int i = 1; i <= nrTrianglesCircle; i++)
+    {
+        projectileIndices.push_back(i);
+    }
+
+    Mesh* projectile = new Mesh("projectile");
+    projectile->SetDrawMode(GL_TRIANGLE_FAN);
+    projectile->InitFromData(projectileVertices, projectileIndices);
+    AddMeshToList(projectile);
+
+
 }
 
 void Lab3::FrameStart()
@@ -275,7 +305,7 @@ void Lab3::FrameStart()
     // Clears the color buffer (using the previously set color) and depth buffer
     glm::vec3 skyDayColor = rgbToVec3(45, 175, 250);
     glm::vec3 skyNightColor = rgbToVec3(11, 33, 46);
-    if(isDay)
+    if (isDay)
     {
         glClearColor(skyDayColor.r, skyDayColor.g, skyDayColor.b, 1);
     }
@@ -336,7 +366,8 @@ void Lab3::Update(float deltaTimeSeconds)
     // Render tank 2 cannon
     RenderMesh2D(meshes["cannon"], shaders["VertexColor"], cannon2ModelMatrix);
 
-    if(isDay)
+
+    if (isDay)
     {
         // Render the sun
         glm::mat3 sunModelMatrix = glm::mat3(1);
@@ -350,11 +381,33 @@ void Lab3::Update(float deltaTimeSeconds)
         moonModelMatrix *= transform2D::Translate(0, resolution.y);
         RenderMesh2D(meshes["moon"], shaders["VertexColor"], moonModelMatrix);
 
-        for(auto star : starModelMatrices)
+        for (auto star : starModelMatrices)
         {
             // Render each star
             RenderMesh2D(meshes["star"], shaders["VertexColor"], star);
         }
+    }
+
+    updateProjectiles(deltaTimeSeconds);
+
+    // Render all projectiles of the first tank
+    for (auto& projectile : projectiles1)
+    {
+        glm::mat3 projectileModelMatrix = glm::mat3(1);
+        projectileModelMatrix *= transform2D::Translate(projectile.coordinates.x,
+                                                       projectile.coordinates.y);
+        RenderMesh2D(meshes["projectile"], shaders["VertexColor"],
+                     projectileModelMatrix);
+    }
+
+    // Render all projectiles of the second tank
+    for (auto& projectile : projectiles2)
+    {
+        glm::mat3 projectileModelMatrix = glm::mat3(1);
+        projectileModelMatrix *= transform2D::Translate(projectile.coordinates.x,
+                                                       projectile.coordinates.y);
+        RenderMesh2D(meshes["projectile"], shaders["VertexColor"],
+                     projectileModelMatrix);
     }
 }
 
@@ -425,22 +478,78 @@ void Lab3::OnKeyPress(int key, int mods)
     // Toggle day/night
     if (window->KeyHold(GLFW_KEY_LEFT_SHIFT))
     {
-        starModelMatrices.clear();
-        isDay = !isDay;
-
-        // Render a random number of stars (between 10 and 30)
-        // Scale them by a random factor (between 0.5 and 1.5)
-        // Draw them at random positions on the upper half of the screen
-        int numStars = rand() % 21 + 10;
-        for (int i = 0; i < numStars; ++i) {
-            float scale = (rand() % 11 + 5) / 10.0f;
-            glm::mat3 starModelMatrix = glm::mat3(1);
-            starModelMatrix *= transform2D::Translate(rand() % resolution.x, rand() % (resolution.y / 2) + (resolution.y / 2));
-            starModelMatrix *= transform2D::Scale(scale, scale);
-            // Save the star mesh in a vector
-            starModelMatrices.push_back(starModelMatrix);
-            RenderMesh2D(meshes["star"], shaders["VertexColor"], starModelMatrix);
+        if (isDay)
+        {
+            isDay = false;
+            // Render a random number of stars (between 10 and 30)
+            // Scale them by a random factor (between 0.5 and 1.5)
+            // Draw them at random positions on the upper half of the screen
+            int numStars = rand() % 21 + 10;
+            for (int i = 0; i < numStars; ++i)
+            {
+                float scale = (rand() % 11 + 5) / 10.0f;
+                glm::mat3 starModelMatrix = glm::mat3(1);
+                starModelMatrix *= transform2D::Translate(
+                    rand() % resolution.x,
+                    rand() % (resolution.y / 2) + (resolution.y / 2));
+                starModelMatrix *= transform2D::Scale(scale, scale);
+                // Save the star mesh in a vector
+                starModelMatrices.push_back(starModelMatrix);
+                RenderMesh2D(meshes["star"], shaders["VertexColor"],
+                             starModelMatrix);
+            }
         }
+        else
+        {
+            starModelMatrices.clear();
+            isDay = true;
+        }
+    }
+
+    // Shoot a projectile from the first tank
+    if (key == GLFW_KEY_SPACE)
+    {
+        // Add a new projectile to the list
+        // Add offset to the angle
+        float projectileAngle = angleBarrel1 + angleTank1 + M_PI / 2;
+        // Calculate the tip of the barrel position
+        float barrelTipX = tank1X + barrelLength * cos(projectileAngle + angleTank1) ;
+        float barrelTipY = tank1Y + trackHeight + armorHeight + barrelLength * sin(projectileAngle);
+
+        glm::vec2 projectileCoordinates = glm::vec2(barrelTipX, barrelTipY);
+        float projectileMagnitude = 500;
+        Projectile projectile(projectileCoordinates, projectileAngle, projectileMagnitude);
+
+        projectiles1.emplace_back(projectile);
+
+        // Print angles for debugging
+        cout << "Barrel angle: " << angleBarrel1 << endl;
+        cout << "Tank angle: " << angleTank1 << endl;
+        cout << "Sum: " << angleBarrel1 + angleTank1 << endl;
+        cout << "Projectile angle: " << projectileAngle << endl;
+    }
+
+    // Shoot a projectile from the second tank
+    if (key == GLFW_KEY_ENTER)
+    {
+        // Add a new projectile to the list
+        // Add offset to the angle
+        float projectileAngle = angleBarrel2 + angleTank2 + M_PI / 2;
+        // Calculate the tip of the barrel position
+        float barrelTipX = tank2X + barrelLength * cos(projectileAngle + angleTank2);
+        float barrelTipY = tank2Y + trackHeight + armorHeight + barrelLength * sin(projectileAngle);
+
+        glm::vec2 projectileCoordinates = glm::vec2(barrelTipX, barrelTipY);
+        float projectileMagnitude = 500;
+        Projectile projectile(projectileCoordinates, projectileAngle, projectileMagnitude);
+
+        projectiles2.emplace_back(projectile);
+
+        // Print angles for debugging
+        cout << "Barrel angle: " << angleBarrel2 << endl;
+        cout << "Tank angle: " << angleTank2 << endl;
+        cout << "Sum: " << angleBarrel2 + angleTank2 << endl;
+        cout << "Projectile angle: " << projectileAngle << endl;
     }
 }
 
