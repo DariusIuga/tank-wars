@@ -320,6 +320,10 @@ void Lab3::FrameStart()
     const glm::ivec2 resolution = window->GetResolution();
     // Sets the screen area where to draw
     glViewport(0, 0, resolution.x, resolution.y);
+
+    // Calculate shooting angles
+    projectileAngle1 = angleBarrel1 + angleTank1 + M_PI / 2;
+    projectileAngle2 = angleBarrel2 + angleTank2 + M_PI / 2;
 }
 
 void Lab3::Update(float deltaTimeSeconds)
@@ -510,15 +514,14 @@ void Lab3::OnKeyPress(int key, int mods)
     if (key == GLFW_KEY_SPACE)
     {
         // Add a new projectile to the list
-        // Add offset to the angle
-        float projectileAngle = angleBarrel1 + angleTank1 + M_PI / 2;
+        // float projectileAngle = angleBarrel1 + angleTank1 + M_PI / 2;
         // Calculate the tip of the barrel position
-        float barrelTipX = tank1X + barrelLength * cos(projectileAngle + angleTank1) ;
-        float barrelTipY = tank1Y + trackHeight + armorHeight + barrelLength * sin(projectileAngle);
+        float barrelTipX = tank1X + barrelLength * cos(projectileAngle1 + angleTank1) ;
+        float barrelTipY = tank1Y + trackHeight + armorHeight + barrelLength * sin(projectileAngle1);
 
         glm::vec2 projectileCoordinates = glm::vec2(barrelTipX, barrelTipY);
         float projectileMagnitude = 500;
-        Projectile projectile(projectileCoordinates, projectileAngle, projectileMagnitude);
+        Projectile projectile(projectileCoordinates, projectileAngle1, projectileMagnitude);
 
         projectiles1.emplace_back(projectile);
 
@@ -526,7 +529,7 @@ void Lab3::OnKeyPress(int key, int mods)
         cout << "Barrel angle: " << angleBarrel1 << endl;
         cout << "Tank angle: " << angleTank1 << endl;
         cout << "Sum: " << angleBarrel1 + angleTank1 << endl;
-        cout << "Projectile angle: " << projectileAngle << endl;
+        cout << "Projectile angle: " << projectileAngle1 << endl;
     }
 
     // Shoot a projectile from the second tank
@@ -534,14 +537,14 @@ void Lab3::OnKeyPress(int key, int mods)
     {
         // Add a new projectile to the list
         // Add offset to the angle
-        float projectileAngle = angleBarrel2 + angleTank2 + M_PI / 2;
+        // float projectileAngle = angleBarrel2 + angleTank2 + M_PI / 2;
         // Calculate the tip of the barrel position
-        float barrelTipX = tank2X + barrelLength * cos(projectileAngle + angleTank2);
-        float barrelTipY = tank2Y + trackHeight + armorHeight + barrelLength * sin(projectileAngle);
+        float barrelTipX = tank2X + barrelLength * cos(projectileAngle2 + angleTank2);
+        float barrelTipY = tank2Y + trackHeight + armorHeight + barrelLength * sin(projectileAngle2);
 
         glm::vec2 projectileCoordinates = glm::vec2(barrelTipX, barrelTipY);
         float projectileMagnitude = 500;
-        Projectile projectile(projectileCoordinates, projectileAngle, projectileMagnitude);
+        Projectile projectile(projectileCoordinates, projectileAngle2, projectileMagnitude);
 
         projectiles2.emplace_back(projectile);
 
@@ -549,7 +552,7 @@ void Lab3::OnKeyPress(int key, int mods)
         cout << "Barrel angle: " << angleBarrel2 << endl;
         cout << "Tank angle: " << angleTank2 << endl;
         cout << "Sum: " << angleBarrel2 + angleTank2 << endl;
-        cout << "Projectile angle: " << projectileAngle << endl;
+        cout << "Projectile angle: " << projectileAngle2 << endl;
     }
 }
 

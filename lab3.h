@@ -26,6 +26,44 @@ namespace m1
         glm::vec2 direction{};
     };
 
+    class Tank
+    {
+    public:
+        Tank(float x, float y, float angleTank, float angleBarrel)
+            : x(x), y(y), angleTank(angleTank), angleBarrel(angleBarrel),
+              projectileAngle(0.0f)
+        {
+        }
+
+        // First trapezoid
+        constexpr static int trackWidth = 30;
+        constexpr static int trackHeight = 10;
+
+        // Second trapezoid
+        constexpr static int armorWidth = 50;
+        constexpr static int armorHeight = 20;
+
+        constexpr static int turretRadius = 20;
+        constexpr static int barrelWidth = 3;
+        constexpr static int barrelLength = 40;
+        constexpr static int projectileRadius = 5;
+
+        // Barrel rotation
+        float angleBarrel;
+
+        // Coordinates of the tanks (from the middle of the bottom side)
+        float x, y;
+
+        // Angles of the tanks
+        float angleTank;
+
+        // Shooting angles
+        float projectileAngle;
+
+        // Keep track of projectiles for the tanks
+        std::vector<Projectile> projectiles;
+    };
+
     class Lab3 : public gfxc::SimpleScene
     {
     public:
@@ -109,8 +147,6 @@ namespace m1
             // The tank is between A and B
 
             // Update the tank's y coordinate to remain on the ground
-            // float t = (tank1Y - yValues[i - 1]) / (yValues[i] - yValues[i - 1]);
-            // tank1Y = yValues[i - 1] + t * (yValues[i] - yValues[i - 1]);
             tank1Y = std::min(yValues[i - 1], yValues[i]);
 
             // We calculate the angle of the tangent in the point i
@@ -230,6 +266,10 @@ namespace m1
         // Angles of the tanks
         float angleTank1;
         float angleTank2;
+
+        // Shooting angles
+        float projectileAngle1;
+        float projectileAngle2;
 
         // Keep track of projectiles for the tanks
         std::vector<Projectile> projectiles1;
