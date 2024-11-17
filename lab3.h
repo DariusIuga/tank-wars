@@ -6,64 +6,6 @@
 
 namespace m1
 {
-    class Projectile
-    {
-    public:
-        Projectile(glm::vec2 coordinates, float angle, float magnitude) :
-            coordinates(
-                coordinates), angle(angle), magnitude(magnitude)
-        {
-            direction = glm::vec2(cos(angle), sin(angle)) * magnitude;
-            // Print the direction vector for debugging
-            std::cout << "Direction: " << direction.x << " " << direction.y <<
-                std::endl;
-        }
-
-        glm::vec2 coordinates;
-
-        float angle;
-        float magnitude;
-        glm::vec2 direction{};
-    };
-
-    class Tank
-    {
-    public:
-        Tank(float x, float y, float angleTank, float angleBarrel)
-            : x(x), y(y), angleTank(angleTank), angleBarrel(angleBarrel),
-              projectileAngle(0.0f)
-        {
-        }
-
-        // First trapezoid
-        constexpr static int trackWidth = 30;
-        constexpr static int trackHeight = 10;
-
-        // Second trapezoid
-        constexpr static int armorWidth = 50;
-        constexpr static int armorHeight = 20;
-
-        constexpr static int turretRadius = 20;
-        constexpr static int barrelWidth = 3;
-        constexpr static int barrelLength = 40;
-        constexpr static int projectileRadius = 5;
-
-        // Barrel rotation
-        float angleBarrel;
-
-        // Coordinates of the tanks (from the middle of the bottom side)
-        float x, y;
-
-        // Angles of the tanks
-        float angleTank;
-
-        // Shooting angles
-        float projectileAngle;
-
-        // Keep track of projectiles for the tanks
-        std::vector<Projectile> projectiles;
-    };
-
     class Lab3 : public gfxc::SimpleScene
     {
     public:
@@ -71,6 +13,82 @@ namespace m1
         ~Lab3() override;
 
         void Init() override;
+
+        class Projectile
+        {
+        public:
+            Projectile(glm::vec2 coordinates, float angle, float magnitude) :
+                coordinates(
+                    coordinates), angle(angle), magnitude(magnitude)
+            {
+                direction = glm::vec2(cos(angle), sin(angle)) * magnitude;
+                // Print the direction vector for debugging
+                std::cout << "Direction: " << direction.x << " " << direction.y
+                    <<
+                    std::endl;
+            }
+
+            glm::vec2 coordinates;
+
+            float angle;
+            float magnitude;
+            glm::vec2 direction{};
+        };
+
+        class Tank
+        {
+        public:
+            Tank(float x, float y, float angleTank, float angleBarrel,
+                 const std::vector<float>& xValues, const std::vector<float>& yValues)
+                : x(x), y(y), angleTank(angleTank), angleBarrel(angleBarrel),
+                  projectileAngle(0.0f), xValues(xValues), yValues(yValues)
+            {
+            }
+
+            Tank(const std::vector<float>& xVals, const std::vector<float>& yVals)
+                : xValues(xVals), yValues(yVals), x(0), y(0), angleTank(0),
+                  angleBarrel(0), projectileAngle(0)
+            {
+            }
+
+            void changeOrientation()
+            {
+                // Find the 2 points whose x values surround the tank
+                int i = 0;
+                while (xValues[i] < x)
+                {
+                    i++;
+                }
+                // Point A is at i-1, point B is at i
+                // The tank is between A and B
+
+                // Update the tank's y coordinate to remain on the ground
+                y = std::min(yValues[i - 1], yValues[i]);
+
+                // We calculate the angle of the tangent in the point i
+                angleTank = atan2(yValues[i] - yValues[i - 1],
+                                  xValues[i] - xValues[i - 1]);
+            }
+
+            // Barrel rotation
+            float angleBarrel{};
+
+            // Coordinates of the tanks (from the middle of the bottom side)
+            float x{}, y{};
+
+            // Angles of the tanks
+            float angleTank{};
+
+            // Shooting angles
+            float projectileAngle{};
+
+            // Keep track of projectiles for the tanks
+            std::vector<Projectile> projectiles;
+
+            // References to the height map values
+            const std::vector<float>& xValues;
+            const std::vector<float>& yValues;
+        };
 
     private:
         void FrameStart() override;
@@ -96,8 +114,9 @@ namespace m1
             xValues.reserve(nrPoints);
             yValues.reserve(nrPoints);
 
-            const float step = static_cast<float>(resolution.x) / static_cast<
-                float>(nrPoints - 1);
+            const float step = static_cast<float>(resolution.x) /
+                static_cast<
+                    float>(nrPoints - 1);
 
             for (int i = 0; i < nrPoints; ++i)
             {
@@ -122,10 +141,10 @@ namespace m1
 
             // Now we calculate the coordinates of the tanks
             // The first one will be placed on the left, the second one on the right
-            tank1X = xValues[nrPoints / 10];
-            tank1Y = yValues[nrPoints / 10];
-            tank2X = xValues[nrPoints - nrPoints / 10];
-            tank2Y = yValues[nrPoints - nrPoints / 10];
+            tank1.x = xValues[nrPoints / 10];
+            tank1.y = yValues[nrPoints / 10];
+            tank2.x = xValues[nrPoints - nrPoints / 10];
+            tank2.y = yValues[nrPoints - nrPoints / 10];
         }
 
         // Function that takes 3 color arguments and returns a glm::vec3
@@ -133,42 +152,6 @@ namespace m1
         static glm::vec3 rgbToVec3(const int r, const int g, const int b)
         {
             return {r / 256.0, g / 256.0, b / 256.0};
-        }
-
-        void changeTank1Orientation()
-        {
-            // Find the 2 points whose x values surround the tank
-            int i = 0;
-            while (xValues[i] < tank1X)
-            {
-                i++;
-            }
-            // Point A is at i-1, point B is at i
-            // The tank is between A and B
-
-            // Update the tank's y coordinate to remain on the ground
-            tank1Y = std::min(yValues[i - 1], yValues[i]);
-
-            // We calculate the angle of the tangent in the point i
-            angleTank1 = atan2(yValues[i] - yValues[i - 1],
-                               xValues[i] - xValues[i - 1]);
-        }
-
-        // Do the same for the second tank
-        void changeTank2Orientation()
-        {
-            int i = 0;
-            while (xValues[i] < tank2X)
-            {
-                i++;
-            }
-            // Point A is at i-1, point B is at i
-            // The tank is between A and B
-
-            tank2Y = std::min(yValues[i - 1], yValues[i]);
-
-            angleTank2 = atan2(yValues[i] - yValues[i - 1],
-                               xValues[i] - xValues[i - 1]);
         }
 
         void updateProjectiles(float deltaTimeSeconds)
@@ -253,23 +236,27 @@ namespace m1
         constexpr static int barrelLength = 40;
         constexpr static int projectileRadius = 5;
 
-        // Barrel rotation
-        float angleBarrel1;
-        float angleBarrel2;
+        // // Barrel rotation
+        // float angleBarrel1;
+        // float angleBarrel2;
+        //
+        // // Coordinates of the tanks (from the middle of the bottom side)
+        // float tank1X;
+        // float tank1Y;
+        // float tank2X;
+        // float tank2Y;
+        //
+        // // Angles of the tanks
+        // float angleTank1;
+        // float angleTank2;
+        //
+        // // Shooting angles
+        // float projectileAngle1;
+        // float projectileAngle2;
 
-        // Coordinates of the tanks (from the middle of the bottom side)
-        float tank1X;
-        float tank1Y;
-        float tank2X;
-        float tank2Y;
-
-        // Angles of the tanks
-        float angleTank1;
-        float angleTank2;
-
-        // Shooting angles
-        float projectileAngle1;
-        float projectileAngle2;
+        // The tanks
+        Tank tank1;
+        Tank tank2;
 
         // Keep track of projectiles for the tanks
         std::vector<Projectile> projectiles1;

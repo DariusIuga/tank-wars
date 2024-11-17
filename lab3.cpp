@@ -14,14 +14,8 @@ using namespace m1;
  *  and the order in which they are called, see `world.cpp`.
  */
 
-Lab3::Lab3()
+Lab3::Lab3(): tank1(xValues,yValues), tank2(xValues,yValues)
 {
-    angleBarrel1 = 0;
-    angleBarrel2 = 0;
-
-    angleTank1 = 0;
-    angleTank2 = 0;
-
     isDay = true;
 
     // Reserve some memory for the projectiles
@@ -322,8 +316,8 @@ void Lab3::FrameStart()
     glViewport(0, 0, resolution.x, resolution.y);
 
     // Calculate shooting angles
-    projectileAngle1 = angleBarrel1 + angleTank1 + M_PI / 2;
-    projectileAngle2 = angleBarrel2 + angleTank2 + M_PI / 2;
+    tank1.projectileAngle = tank1.angleBarrel + tank1.angleTank + M_PI / 2;
+    tank2.projectileAngle = tank2.angleBarrel + tank2.angleTank + M_PI / 2;
 }
 
 void Lab3::Update(float deltaTimeSeconds)
@@ -336,9 +330,9 @@ void Lab3::Update(float deltaTimeSeconds)
 
     // Model matrix for the first tank
     glm::mat3 tank1ModelMatrix = glm::mat3(1);
-    tank1ModelMatrix *= transform2D::Translate(tank1X, tank1Y);
+    tank1ModelMatrix *= transform2D::Translate(tank1.x, tank1.y);
     // Rotate the tank around its center
-    tank1ModelMatrix *= transform2D::Rotate(angleTank1);
+    tank1ModelMatrix *= transform2D::Rotate(tank1.angleTank);
 
     // Render tank 1 base
     RenderMesh2D(meshes["tank1_base"], shaders["VertexColor"],
@@ -348,15 +342,15 @@ void Lab3::Update(float deltaTimeSeconds)
 
     glm::mat3 cannon1ModelMatrix = tank1ModelMatrix;
     cannon1ModelMatrix *= transform2D::Translate(0, trackHeight + armorHeight);
-    cannon1ModelMatrix *= transform2D::Rotate(angleBarrel1);
+    cannon1ModelMatrix *= transform2D::Rotate(tank1.angleBarrel);
     // Render tank 1 cannon
     RenderMesh2D(meshes["cannon"], shaders["VertexColor"], cannon1ModelMatrix);
 
     // Model matrix for the second tank
     glm::mat3 tank2ModelMatrix = glm::mat3(1);
-    tank2ModelMatrix *= transform2D::Translate(tank2X, tank2Y);
+    tank2ModelMatrix *= transform2D::Translate(tank2.x, tank2.y);
     // Rotate the tank around its center
-    tank2ModelMatrix *= transform2D::Rotate(angleTank2);
+    tank2ModelMatrix *= transform2D::Rotate(tank2.angleTank);
 
     // Render tank 2 base
     RenderMesh2D(meshes["tank2_base"], shaders["VertexColor"],
@@ -366,7 +360,7 @@ void Lab3::Update(float deltaTimeSeconds)
 
     glm::mat3 cannon2ModelMatrix = tank2ModelMatrix;
     cannon2ModelMatrix *= transform2D::Translate(0, trackHeight + armorHeight);
-    cannon2ModelMatrix *= transform2D::Rotate(angleBarrel2);
+    cannon2ModelMatrix *= transform2D::Rotate(tank2.angleBarrel);
     // Render tank 2 cannon
     RenderMesh2D(meshes["cannon"], shaders["VertexColor"], cannon2ModelMatrix);
 
@@ -430,50 +424,50 @@ void Lab3::OnInputUpdate(float deltaTime, int mods)
     // Rotate the cannon of the first tank counterclockwise (lift it)
     if (window->KeyHold(GLFW_KEY_W))
     {
-        angleBarrel1 += deltaTime;
+        tank1.angleBarrel += deltaTime;
     }
     // Rotate the cannon of the first tank clockwise (lower it)
     if (window->KeyHold(GLFW_KEY_S))
     {
-        angleBarrel1 -= deltaTime;
+        tank1.angleBarrel -= deltaTime;
     }
 
     // Rotate the cannon of the second tank clockwise (lift it)
     if (window->KeyHold(GLFW_KEY_UP))
     {
-        angleBarrel2 -= deltaTime;
+        tank2.angleBarrel -= deltaTime;
     }
     // Rotate the cannon of the second tank counterclockwise (lower it)
     if (window->KeyHold(GLFW_KEY_DOWN))
     {
-        angleBarrel2 += deltaTime;
+        tank2.angleBarrel += deltaTime;
     }
 
     // Tank movement
     // Move the first tank to the left
     if (window->KeyHold(GLFW_KEY_A))
     {
-        tank1X -= deltaTime * 100;
-        changeTank1Orientation();
+        tank1.x -= deltaTime * 100;
+        tank1.changeOrientation();
     }
     // Move the first tank to the right
     if (window->KeyHold(GLFW_KEY_D))
     {
-        tank1X += deltaTime * 100;
-        changeTank1Orientation();
+        tank1.x += deltaTime * 100;
+        tank1.changeOrientation();
     }
 
     // Move the second tank to the left
     if (window->KeyHold(GLFW_KEY_LEFT))
     {
-        tank2X -= deltaTime * 100;
-        changeTank2Orientation();
+        tank2.x -= deltaTime * 100;
+        tank2.changeOrientation();
     }
     // Move the second tank to the right
     if (window->KeyHold(GLFW_KEY_RIGHT))
     {
-        tank2X += deltaTime * 100;
-        changeTank2Orientation();
+        tank2.x += deltaTime * 100;
+        tank2.changeOrientation();
     }
 }
 
@@ -516,43 +510,30 @@ void Lab3::OnKeyPress(int key, int mods)
         // Add a new projectile to the list
         // float projectileAngle = angleBarrel1 + angleTank1 + M_PI / 2;
         // Calculate the tip of the barrel position
-        float barrelTipX = tank1X + barrelLength * cos(projectileAngle1 + angleTank1) ;
-        float barrelTipY = tank1Y + trackHeight + armorHeight + barrelLength * sin(projectileAngle1);
+        float barrelTipX = tank1.x + barrelLength * cos(tank1.projectileAngle + tank1.angleTank) ;
+        float barrelTipY = tank1.y + trackHeight + armorHeight + barrelLength * sin(tank1.projectileAngle);
 
         glm::vec2 projectileCoordinates = glm::vec2(barrelTipX, barrelTipY);
         float projectileMagnitude = 500;
-        Projectile projectile(projectileCoordinates, projectileAngle1, projectileMagnitude);
+        Projectile projectile(projectileCoordinates, tank1.projectileAngle, projectileMagnitude);
 
         projectiles1.emplace_back(projectile);
-
-        // Print angles for debugging
-        cout << "Barrel angle: " << angleBarrel1 << endl;
-        cout << "Tank angle: " << angleTank1 << endl;
-        cout << "Sum: " << angleBarrel1 + angleTank1 << endl;
-        cout << "Projectile angle: " << projectileAngle1 << endl;
     }
 
     // Shoot a projectile from the second tank
     if (key == GLFW_KEY_ENTER)
     {
         // Add a new projectile to the list
-        // Add offset to the angle
-        // float projectileAngle = angleBarrel2 + angleTank2 + M_PI / 2;
+        // float projectileAngle = angleBarrel1 + angleTank1 + M_PI / 2;
         // Calculate the tip of the barrel position
-        float barrelTipX = tank2X + barrelLength * cos(projectileAngle2 + angleTank2);
-        float barrelTipY = tank2Y + trackHeight + armorHeight + barrelLength * sin(projectileAngle2);
+        float barrelTipX = tank2.x + barrelLength * cos(tank2.projectileAngle + tank2.angleTank) ;
+        float barrelTipY = tank2.y + trackHeight + armorHeight + barrelLength * sin(tank2.projectileAngle);
 
         glm::vec2 projectileCoordinates = glm::vec2(barrelTipX, barrelTipY);
         float projectileMagnitude = 500;
-        Projectile projectile(projectileCoordinates, projectileAngle2, projectileMagnitude);
+        Projectile projectile(projectileCoordinates, tank2.projectileAngle, projectileMagnitude);
 
-        projectiles2.emplace_back(projectile);
-
-        // Print angles for debugging
-        cout << "Barrel angle: " << angleBarrel2 << endl;
-        cout << "Tank angle: " << angleTank2 << endl;
-        cout << "Sum: " << angleBarrel2 + angleTank2 << endl;
-        cout << "Projectile angle: " << projectileAngle2 << endl;
+        projectiles1.emplace_back(projectile);
     }
 }
 
