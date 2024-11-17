@@ -39,17 +39,15 @@ namespace m1
         {
         public:
             Tank(float x, float y, float angleTank, float angleBarrel,
-                 const std::vector<float>& xValues, const std::vector<float>& yValues)
+                const std::vector<float>& xValues, const std::vector<float>& yValues)
                 : x(x), y(y), angleTank(angleTank), angleBarrel(angleBarrel),
-                  projectileAngle(0.0f), xValues(xValues), yValues(yValues)
-            {
-            }
+                projectileAngle(0.0f), xValues(xValues), yValues(yValues)
+            {}
 
             Tank(const std::vector<float>& xVals, const std::vector<float>& yVals)
                 : xValues(xVals), yValues(yVals), x(0), y(0), angleTank(0),
-                  angleBarrel(0), projectileAngle(0)
-            {
-            }
+                angleBarrel(0), projectileAngle(0)
+            {}
 
             void changeOrientation()
             {
@@ -67,7 +65,7 @@ namespace m1
 
                 // We calculate the angle of the tangent in the point i
                 angleTank = atan2(yValues[i] - yValues[i - 1],
-                                  xValues[i] - xValues[i - 1]);
+                    xValues[i] - xValues[i - 1]);
             }
 
             // Barrel rotation
@@ -88,6 +86,14 @@ namespace m1
             // References to the height map values
             const std::vector<float>& xValues;
             const std::vector<float>& yValues;
+
+            // Method to calculate and create trajectory mesh
+            void calculateTrajectory(unsigned short tankIndex);
+
+            // Mesh to represent the trajectory
+            Mesh* trajectoryMesh{};
+
+            unsigned short health = 100;
         };
 
     private:
@@ -99,13 +105,13 @@ namespace m1
         void OnKeyPress(int key, int mods) override;
         void OnKeyRelease(int key, int mods) override;
         void OnMouseMove(int mouseX, int mouseY, int deltaX,
-                         int deltaY) override;
+            int deltaY) override;
         void OnMouseBtnPress(int mouseX, int mouseY, int button,
-                             int mods) override;
+            int mods) override;
         void OnMouseBtnRelease(int mouseX, int mouseY, int button,
-                               int mods) override;
+            int mods) override;
         void OnMouseScroll(int mouseX, int mouseY, int offsetX,
-                           int offsetY) override;
+            int offsetY) override;
         void OnWindowResize(int width, int height) override;
 
 
@@ -116,7 +122,7 @@ namespace m1
 
             const float step = static_cast<float>(resolution.x) /
                 static_cast<
-                    float>(nrPoints - 1);
+                float>(nrPoints - 1);
 
             for (int i = 0; i < nrPoints; ++i)
             {
@@ -128,8 +134,8 @@ namespace m1
                 // Fourier series used to generate the height map
                 float y = 4 * sin(t) + 2 * sin(
                     2 * t) + 1.5 * sin(
-                    3 * t) + 1 * sin(5 * t) + 0.5 * sin(10 * t) + 0.2 * sin(
-                    20 * t);
+                        3 * t) + 1 * sin(5 * t) + 0.5 * sin(10 * t) + 0.2 * sin(
+                            20 * t);
                 // Make the change in height more drastic
                 y *= 30;
 
@@ -151,7 +157,7 @@ namespace m1
         // glm::vec3 groundColor(1.0 / 255 * 120, 1.0 / 255 * 150, 1.0 / 255 * 100);
         static glm::vec3 rgbToVec3(const int r, const int g, const int b)
         {
-            return {r / 256.0, g / 256.0, b / 256.0};
+            return { r / 256.0, g / 256.0, b / 256.0 };
         }
 
         void updateProjectiles(float deltaTimeSeconds)
@@ -171,41 +177,7 @@ namespace m1
                     deltaTimeSeconds;
                 projectile.direction -= gravity * deltaTimeSeconds;
             }
-
-            // // Check for collision with the ground
-            // for (auto& projectile : projectiles1)
-            // {
-            //     for (int i = 0; i < nrPoints - 1; i++)
-            //     {
-            //         if (projectile.coordinates.x > xValues[i] &&
-            //             projectile.coordinates.x < xValues[i + 1])
-            //         {
-            //             // Calculate the y value of the line between the 2 points
-            //             float y = yValues[i] + (yValues[i + 1] - yValues[i]) *
-            //                 (projectile.coordinates.x - xValues[i]) /
-            //                 (xValues[i + 1] - xValues[i]);
-            //             if (projectile.coordinates.y < y)
-            //             {
-            //                 std::cout << "BANG!" << std::endl;
-            //                 explodeProjectile(projectile.coordinates);
-            //             }
-            //         }
-            //     }
         }
-
-        // void explodeProjectile(glm::vec2 coordinates)
-        // {
-        //     // Lower the height around the blast radius
-        //     for (int i = 0; i < nrPoints; i++)
-        //     {
-        //         glm::vec2 distance = glm::vec2(xValues[i], yValues[i]) - coordinates;
-        //         if (glm::distance(glm::vec2(xValues[i], yValues[i]), coordinates) <
-        //             blastRadius)
-        //         {
-        //             yValues[i] -= 50;
-        //         }
-        //     }
-        // }
 
     protected:
         float cx{}, cy{};
@@ -261,7 +233,7 @@ namespace m1
         // Keep track of projectiles for the tanks
         std::vector<Projectile> projectiles1;
         std::vector<Projectile> projectiles2;
-        const glm::vec2 gravity{0, 500};
+        const glm::vec2 gravity{ 0, 500 };
         constexpr static int blastRadius = 50;
 
         constexpr static int sunRadius = 200;

@@ -14,7 +14,7 @@ using namespace m1;
  *  and the order in which they are called, see `world.cpp`.
  */
 
-Lab3::Lab3(): tank1(xValues,yValues), tank2(xValues,yValues)
+Lab3::Lab3() : tank1(xValues, yValues), tank2(xValues, yValues)
 {
     isDay = true;
 
@@ -31,8 +31,8 @@ void Lab3::Init()
     resolution = window->GetResolution();
     auto camera = GetSceneCamera();
     camera->SetOrthographic(0, static_cast<float>(resolution.x), 0,
-                            static_cast<float>(resolution.y),
-                            0.01f, 400);
+        static_cast<float>(resolution.y),
+        0.01f, 400);
     camera->SetPosition(glm::vec3(0, 0, 50));
     camera->SetRotation(glm::vec3(0, 0, 0));
     camera->Update();
@@ -49,7 +49,7 @@ void Lab3::Init()
     for (int i = 0; i < nrPoints; i++)
     {
         vertices.emplace_back(glm::vec3(xValues[i], yValues[i], 0),
-                              groundColor);
+            groundColor);
         vertices.emplace_back(glm::vec3(xValues[i], 0, 0), groundColor);
     }
 
@@ -78,31 +78,31 @@ void Lab3::Init()
 
     // Add points for the lower trapezoid
     tank1BaseVertices.emplace_back(glm::vec3(-trackWidth, 0, 0),
-                                   tank1TrackColor);
+        tank1TrackColor);
     tank1BaseVertices.
         emplace_back(glm::vec3(trackWidth, 0, 0), tank1TrackColor);
     tank1BaseVertices.emplace_back(glm::vec3(-trackWidth - 10, trackHeight, 0),
-                                   tank1TrackColor);
+        tank1TrackColor);
     tank1BaseVertices.emplace_back(glm::vec3(trackWidth + 10, trackHeight, 0),
-                                   tank1TrackColor);
+        tank1TrackColor);
 
     tank2BaseVertices.emplace_back(glm::vec3(-trackWidth, 0, 0),
-                                   tank2TrackColor);
+        tank2TrackColor);
     tank2BaseVertices.
         emplace_back(glm::vec3(trackWidth, 0, 0), tank2TrackColor);
     tank2BaseVertices.emplace_back(glm::vec3(-trackWidth - 10, trackHeight, 0),
-                                   tank2TrackColor);
+        tank2TrackColor);
     tank2BaseVertices.emplace_back(glm::vec3(trackWidth + 10, trackHeight, 0),
-                                   tank2TrackColor);
+        tank2TrackColor);
 
     glm::vec3 tank1ArmorColor = rgbToVec3(96, 93, 245);
     glm::vec3 tank2ArmorColor = rgbToVec3(245, 93, 96);
 
     // Add points for the upper trapezoid
     tank1BaseVertices.emplace_back(glm::vec3(-armorWidth, trackHeight, 0),
-                                   tank1TrackColor);
+        tank1TrackColor);
     tank1BaseVertices.emplace_back(glm::vec3(armorWidth, trackHeight, 0),
-                                   tank1TrackColor);
+        tank1TrackColor);
     tank1BaseVertices.emplace_back(
         glm::vec3(-armorWidth + 20, armorHeight + trackHeight, 0),
         tank1ArmorColor);
@@ -111,9 +111,9 @@ void Lab3::Init()
         tank1ArmorColor);
 
     tank2BaseVertices.emplace_back(glm::vec3(-armorWidth, trackHeight, 0),
-                                   tank2TrackColor);
+        tank2TrackColor);
     tank2BaseVertices.emplace_back(glm::vec3(armorWidth, trackHeight, 0),
-                                   tank2TrackColor);
+        tank2TrackColor);
     tank2BaseVertices.emplace_back(
         glm::vec3(-armorWidth + 20, armorHeight + trackHeight, 0),
         tank2ArmorColor);
@@ -127,15 +127,15 @@ void Lab3::Init()
         6, 5, 4, 6, 7, 5
     };
 
-    Mesh* tank1 = new Mesh("tank1_base");
-    tank1->SetDrawMode(GL_TRIANGLES);
-    tank1->InitFromData(tank1BaseVertices, tankBaseIndices);
-    AddMeshToList(tank1);
+    Mesh* tank1_base = new Mesh("tank1_base");
+    tank1_base->SetDrawMode(GL_TRIANGLES);
+    tank1_base->InitFromData(tank1BaseVertices, tankBaseIndices);
+    AddMeshToList(tank1_base);
 
-    Mesh* tank2 = new Mesh("tank2_base");
-    tank2->SetDrawMode(GL_TRIANGLES);
-    tank2->InitFromData(tank2BaseVertices, tankBaseIndices);
-    AddMeshToList(tank2);
+    Mesh* tank2_base = new Mesh("tank2_base");
+    tank2_base->SetDrawMode(GL_TRIANGLES);
+    tank2_base->InitFromData(tank2BaseVertices, tankBaseIndices);
+    AddMeshToList(tank2_base);
 
     // Create another mesh for the turret of the tank
     // It will be a semicircle on top of the tank base
@@ -144,21 +144,21 @@ void Lab3::Init()
     vector<VertexFormat> turret1Vertices;
     vector<VertexFormat> turret2Vertices;
     turret1Vertices.emplace_back(glm::vec3(0, trackHeight + armorHeight, 0),
-                                 tank1ArmorColor);
+        tank1ArmorColor);
     turret2Vertices.emplace_back(glm::vec3(0, trackHeight + armorHeight, 0),
-                                 tank2ArmorColor);
+        tank2ArmorColor);
     for (int i = 0; i <= nrTrianglesCircle; i++)
     {
         float angle = M_PI / nrTrianglesCircle * (i + 0.5);
         turret1Vertices.emplace_back(
             glm::vec3(turretRadius * cos(angle),
-                      turretRadius * sin(angle) + trackHeight + armorHeight - 5,
-                      0),
+                turretRadius * sin(angle) + trackHeight + armorHeight - 5,
+                0),
             tank1ArmorColor);
         turret2Vertices.emplace_back(
             glm::vec3(turretRadius * cos(angle),
-                      turretRadius * sin(angle) + trackHeight + armorHeight - 5,
-                      0),
+                turretRadius * sin(angle) + trackHeight + armorHeight - 5,
+                0),
             tank2ArmorColor);
     }
 
@@ -189,9 +189,9 @@ void Lab3::Init()
     cannonVertices.emplace_back(glm::vec3(-barrelWidth, 0, 0), cannonColor);
     cannonVertices.emplace_back(glm::vec3(barrelWidth, 0, 0), cannonColor);
     cannonVertices.emplace_back(glm::vec3(-barrelWidth, barrelLength, 0),
-                                cannonColor);
+        cannonColor);
     cannonVertices.emplace_back(glm::vec3(barrelWidth, barrelLength, 0),
-                                cannonColor);
+        cannonColor);
 
     vector<unsigned int> cannonIndices = {
         2, 1, 0, 2, 3, 1
@@ -270,13 +270,13 @@ void Lab3::Init()
     glm::vec3 projectileColor = rgbToVec3(0, 0, 0);
     vector<VertexFormat> projectileVertices;
     projectileVertices.emplace_back(glm::vec3(0, 0, 0),
-                                    projectileColor);
+        projectileColor);
     for (int i = 0; i <= nrTrianglesCircle; i++)
     {
         float angle = 2 * M_PI / nrTrianglesCircle * i;
         projectileVertices.emplace_back(
             glm::vec3(projectileRadius * cos(angle),
-                      projectileRadius * sin(angle), 0),
+                projectileRadius * sin(angle), 0),
             projectileColor);
     }
 
@@ -291,7 +291,14 @@ void Lab3::Init()
     projectile->InitFromData(projectileVertices, projectileIndices);
     AddMeshToList(projectile);
 
+    // Initialize trajectory meshes for both tanks
+    tank1.trajectoryMesh = new Mesh("trajectory1");
+    tank1.trajectoryMesh->SetDrawMode(GL_LINE_STRIP);
+    AddMeshToList(tank1.trajectoryMesh);
 
+    tank2.trajectoryMesh = new Mesh("trajectory2");
+    tank2.trajectoryMesh->SetDrawMode(GL_LINE_STRIP);
+    AddMeshToList(tank2.trajectoryMesh);
 }
 
 void Lab3::FrameStart()
@@ -336,7 +343,7 @@ void Lab3::Update(float deltaTimeSeconds)
 
     // Render tank 1 base
     RenderMesh2D(meshes["tank1_base"], shaders["VertexColor"],
-                 tank1ModelMatrix);
+        tank1ModelMatrix);
     // Render tank 1 turret
     RenderMesh2D(meshes["turret1"], shaders["VertexColor"], tank1ModelMatrix);
 
@@ -354,7 +361,7 @@ void Lab3::Update(float deltaTimeSeconds)
 
     // Render tank 2 base
     RenderMesh2D(meshes["tank2_base"], shaders["VertexColor"],
-                 tank2ModelMatrix);
+        tank2ModelMatrix);
     // Render tank 2 turret
     RenderMesh2D(meshes["turret2"], shaders["VertexColor"], tank2ModelMatrix);
 
@@ -392,26 +399,34 @@ void Lab3::Update(float deltaTimeSeconds)
     for (auto& projectile : projectiles1)
     {
         glm::mat3 projectileModelMatrix = glm::mat3(1);
-        projectileModelMatrix *= transform2D::Translate(projectile.coordinates.x,
-                                                       projectile.coordinates.y);
+        projectileModelMatrix *= transform2D::Translate(
+            projectile.coordinates.x,
+            projectile.coordinates.y);
         RenderMesh2D(meshes["projectile"], shaders["VertexColor"],
-                     projectileModelMatrix);
+            projectileModelMatrix);
     }
 
     // Render all projectiles of the second tank
     for (auto& projectile : projectiles2)
     {
         glm::mat3 projectileModelMatrix = glm::mat3(1);
-        projectileModelMatrix *= transform2D::Translate(projectile.coordinates.x,
-                                                       projectile.coordinates.y);
+        projectileModelMatrix *= transform2D::Translate(
+            projectile.coordinates.x,
+            projectile.coordinates.y);
         RenderMesh2D(meshes["projectile"], shaders["VertexColor"],
-                     projectileModelMatrix);
+            projectileModelMatrix);
     }
+
+    // Calculate and render trajectories for both tanks
+    tank1.calculateTrajectory(1);
+    RenderMesh2D(tank1.trajectoryMesh, shaders["VertexColor"], glm::mat3(1));
+
+    tank2.calculateTrajectory(2);
+    RenderMesh2D(tank2.trajectoryMesh, shaders["VertexColor"], glm::mat3(1));
 }
 
 void Lab3::FrameEnd()
-{
-}
+{}
 
 /*
  *  These are callback functions. To find more about callbacks and
@@ -494,7 +509,7 @@ void Lab3::OnKeyPress(int key, int mods)
                 // Save the star mesh in a vector
                 starModelMatrices.push_back(starModelMatrix);
                 RenderMesh2D(meshes["star"], shaders["VertexColor"],
-                             starModelMatrix);
+                    starModelMatrix);
             }
         }
         else
@@ -510,12 +525,15 @@ void Lab3::OnKeyPress(int key, int mods)
         // Add a new projectile to the list
         // float projectileAngle = angleBarrel1 + angleTank1 + M_PI / 2;
         // Calculate the tip of the barrel position
-        float barrelTipX = tank1.x + barrelLength * cos(tank1.projectileAngle + tank1.angleTank) ;
-        float barrelTipY = tank1.y + trackHeight + armorHeight + barrelLength * sin(tank1.projectileAngle);
+        float barrelTipX = tank1.x + barrelLength * cos(
+            tank1.projectileAngle + tank1.angleTank);
+        float barrelTipY = tank1.y + trackHeight + armorHeight + barrelLength *
+            sin(tank1.projectileAngle);
 
         glm::vec2 projectileCoordinates = glm::vec2(barrelTipX, barrelTipY);
         float projectileMagnitude = 500;
-        Projectile projectile(projectileCoordinates, tank1.projectileAngle, projectileMagnitude);
+        Projectile projectile(projectileCoordinates, tank1.projectileAngle,
+            projectileMagnitude);
 
         projectiles1.emplace_back(projectile);
     }
@@ -526,12 +544,15 @@ void Lab3::OnKeyPress(int key, int mods)
         // Add a new projectile to the list
         // float projectileAngle = angleBarrel1 + angleTank1 + M_PI / 2;
         // Calculate the tip of the barrel position
-        float barrelTipX = tank2.x + barrelLength * cos(tank2.projectileAngle + tank2.angleTank) ;
-        float barrelTipY = tank2.y + trackHeight + armorHeight + barrelLength * sin(tank2.projectileAngle);
+        float barrelTipX = tank2.x + barrelLength * cos(
+            tank2.projectileAngle + tank2.angleTank);
+        float barrelTipY = tank2.y + trackHeight + armorHeight + barrelLength *
+            sin(tank2.projectileAngle);
 
         glm::vec2 projectileCoordinates = glm::vec2(barrelTipX, barrelTipY);
         float projectileMagnitude = 500;
-        Projectile projectile(projectileCoordinates, tank2.projectileAngle, projectileMagnitude);
+        Projectile projectile(projectileCoordinates, tank2.projectileAngle,
+            projectileMagnitude);
 
         projectiles1.emplace_back(projectile);
     }
@@ -558,9 +579,70 @@ void Lab3::OnMouseBtnRelease(int mouseX, int mouseY, int button, int mods)
 }
 
 void Lab3::OnMouseScroll(int mouseX, int mouseY, int offsetX, int offsetY)
-{
-}
+{}
 
 void Lab3::OnWindowResize(int width, int height)
+{}
+
+void m1::Lab3::Tank::calculateTrajectory(unsigned short type)
 {
+    std::vector<VertexFormat> trajectoryVertices;
+    glm::vec3 trajectoryColor; // Declare trajectoryColor without initializing
+
+    if (type == 1)
+    {
+        trajectoryColor = rgbToVec3(0, 0, 255); // Blue color for tank 1
+    }
+    else if (type == 2)
+    {
+        trajectoryColor = rgbToVec3(255, 0, 0); // Red color for tank 2
+    }
+
+    // Initial position at the tip of the barrel
+    glm::vec2 position = glm::vec2(
+        x + barrelLength * cos(projectileAngle + angleTank),
+        y + trackHeight + armorHeight + barrelLength * sin(projectileAngle));
+
+    // Initial velocity
+    float speed = 500.0f; // Same as projectile magnitude
+    glm::vec2 direction = glm::vec2(cos(projectileAngle),
+        sin(projectileAngle)) * speed;
+
+    const float timeStep = 0.1f;
+    const float maxTime = 10.0f;
+    float time = 0.0f;
+
+    // Gravity acceleration
+
+    glm::vec2 acceleration(0, 530);
+
+    // Add initial point
+    trajectoryVertices.emplace_back(glm::vec3(position, 0), trajectoryColor);
+
+    while (time < maxTime)
+    {
+        time += timeStep;
+        // Update position
+        position += direction * timeStep;
+        // Update velocity
+        direction -= acceleration * timeStep;
+
+        // Check if projectile has hit the ground
+        if (position.y <= 0)
+            break;
+
+        // Add new point
+        trajectoryVertices.
+            emplace_back(glm::vec3(position, 0), trajectoryColor);
+    }
+
+    // Indices
+    std::vector<unsigned int> indices;
+    for (unsigned int i = 0; i < trajectoryVertices.size(); ++i)
+    {
+        indices.push_back(i);
+    }
+
+    // Initialize trajectory mesh
+    trajectoryMesh->InitFromData(trajectoryVertices, indices);
 }
