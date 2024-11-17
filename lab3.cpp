@@ -19,8 +19,8 @@ Lab3::Lab3() : tank1(xValues, yValues), tank2(xValues, yValues)
     isDay = true;
 
     // Reserve some memory for the projectiles
-    projectiles1.reserve(16);
-    projectiles2.reserve(16);
+    projectiles1.reserve(100);
+    projectiles2.reserve(100);
 }
 
 Lab3::~Lab3()
@@ -40,36 +40,12 @@ void Lab3::Init()
 
     CreateHeightMap(nrPoints);
 
-    // Create vertices for the triangle strip
-    vector<VertexFormat> vertices;
-    vertices.reserve(yValues.size() * 2);
+    tank1.xValues = xValues;
+    tank1.yValues = yValues;
+    tank2.xValues = xValues;
+    tank2.yValues = yValues;
 
-    glm::vec3 groundColor = rgbToVec3(30, 117, 32);
-
-    for (int i = 0; i < nrPoints; i++)
-    {
-        vertices.emplace_back(glm::vec3(xValues[i], yValues[i], 0),
-            groundColor);
-        vertices.emplace_back(glm::vec3(xValues[i], 0, 0), groundColor);
-    }
-
-    // Define indices for the triangle strip
-    vector<unsigned int> indices;
-    indices.reserve(vertices.size());
-    for (unsigned int i = 0; i < vertices.size(); ++i)
-    {
-        indices.push_back(i);
-    }
-
-    // Create and initialize the triangle strip mesh
-    Mesh* triangleStrip = new Mesh("triangle_strip");
-    triangleStrip->SetDrawMode(GL_TRIANGLE_STRIP);
-    triangleStrip->InitFromData(vertices, indices);
-    AddMeshToList(triangleStrip);
-
-    // Draw 2 trapezoids in opposite directions, one on top of the other
-    // The trapezoids are drawn using 2 triangles each. They should look like
-    // the base of a tank.
+    createGroundMesh();
 
     vector<VertexFormat> tank1BaseVertices;
     vector<VertexFormat> tank2BaseVertices;
@@ -398,6 +374,10 @@ void Lab3::Update(float deltaTimeSeconds)
     // Render all projectiles of the first tank
     for (auto& projectile : projectiles1)
     {
+        if (projectile.isExploded)
+        {
+            continue;
+        }
         glm::mat3 projectileModelMatrix = glm::mat3(1);
         projectileModelMatrix *= transform2D::Translate(
             projectile.coordinates.x,
@@ -409,6 +389,10 @@ void Lab3::Update(float deltaTimeSeconds)
     // Render all projectiles of the second tank
     for (auto& projectile : projectiles2)
     {
+        if (projectile.isExploded)
+        {
+            continue;
+        }
         glm::mat3 projectileModelMatrix = glm::mat3(1);
         projectileModelMatrix *= transform2D::Translate(
             projectile.coordinates.x,
@@ -532,8 +516,8 @@ void Lab3::OnKeyPress(int key, int mods)
 
         glm::vec2 projectileCoordinates = glm::vec2(barrelTipX, barrelTipY);
         float projectileMagnitude = 500;
-        Projectile projectile(projectileCoordinates, tank1.projectileAngle,
-            projectileMagnitude);
+        Projectile projectile(this, projectileCoordinates, tank1.projectileAngle,
+            projectileMagnitude, tank1.xValues, tank1.yValues);
 
         projectiles1.emplace_back(projectile);
     }
@@ -551,10 +535,10 @@ void Lab3::OnKeyPress(int key, int mods)
 
         glm::vec2 projectileCoordinates = glm::vec2(barrelTipX, barrelTipY);
         float projectileMagnitude = 500;
-        Projectile projectile(projectileCoordinates, tank2.projectileAngle,
-            projectileMagnitude);
+        Projectile projectile(this, projectileCoordinates, tank2.projectileAngle,
+            projectileMagnitude, tank1.xValues, tank1.yValues);
 
-        projectiles1.emplace_back(projectile);
+        projectiles2.emplace_back(projectile);
     }
 }
 

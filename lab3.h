@@ -17,37 +17,78 @@ namespace m1
         class Projectile
         {
         public:
-            Projectile(glm::vec2 coordinates, float angle, float magnitude) :
-                coordinates(
-                    coordinates), angle(angle), magnitude(magnitude)
+            Projectile(Lab3* lab3Instance, glm::vec2 coordinates, float angle,
+                       float magnitude,
+                       std::vector<float>& xValues, std::vector<float>& yValues)
+                : lab3(lab3Instance), coordinates(coordinates), angle(angle),
+                  magnitude(magnitude),
+                  xValues(xValues), yValues(yValues)
             {
                 direction = glm::vec2(cos(angle), sin(angle)) * magnitude;
-                // Print the direction vector for debugging
-                std::cout << "Direction: " << direction.x << " " << direction.y
-                    <<
-                    std::endl;
             }
 
-            glm::vec2 coordinates;
+            void checkColision()
+            {
+                for (int i = 0; i < xValues.capacity(); ++i)
+                {
+                    if (glm::distance(glm::vec2(xValues[i], yValues[i]),
+                                      coordinates) < triggerRadius)
+                    {
+                        // Trigger explosion
+                        explode();
+                    }
+                }
+            }
 
+            void explode()
+            {
+                for (int i = 0; i < xValues.capacity(); ++i)
+                {
+                    if (glm::distance(glm::vec2(xValues[i], yValues[i]),
+                                      coordinates) <
+                        explosionRadius)
+                    {
+                        // Use the circle equation to find the height of the lower half
+                        // of the circle
+                        float new_y = -sqrt(pow(explosionRadius, 2) -
+                            pow(xValues[i] - coordinates.x, 2)) + coordinates.y;
+                        yValues[i] = new_y;
+                    }
+                }
+                lab3->createGroundMesh();
+                isExploded = true;
+            }
+
+            bool isExploded = false;
+            glm::vec2 coordinates;
             float angle;
             float magnitude;
             glm::vec2 direction{};
+            std::vector<float>& xValues;
+            std::vector<float>& yValues;
+
+            constexpr static int triggerRadius = 5;
+            constexpr static int explosionRadius = 50;
+
+        private:
+            Lab3* lab3; // Pointer to the Lab3 instance
         };
 
         class Tank
         {
         public:
             Tank(float x, float y, float angleTank, float angleBarrel,
-                const std::vector<float>& xValues, const std::vector<float>& yValues)
+                 std::vector<float>& xValues, std::vector<float>& yValues)
                 : x(x), y(y), angleTank(angleTank), angleBarrel(angleBarrel),
-                projectileAngle(0.0f), xValues(xValues), yValues(yValues)
-            {}
+                  projectileAngle(0.0f), xValues(xValues), yValues(yValues)
+            {
+            }
 
-            Tank(const std::vector<float>& xVals, const std::vector<float>& yVals)
+            Tank(std::vector<float>& xVals, std::vector<float>& yVals)
                 : xValues(xVals), yValues(yVals), x(0), y(0), angleTank(0),
-                angleBarrel(0), projectileAngle(0)
-            {}
+                  angleBarrel(0), projectileAngle(0)
+            {
+            }
 
             void changeOrientation()
             {
@@ -65,7 +106,7 @@ namespace m1
 
                 // We calculate the angle of the tangent in the point i
                 angleTank = atan2(yValues[i] - yValues[i - 1],
-                    xValues[i] - xValues[i - 1]);
+                                  xValues[i] - xValues[i - 1]);
             }
 
             // Barrel rotation
@@ -84,8 +125,8 @@ namespace m1
             std::vector<Projectile> projectiles;
 
             // References to the height map values
-            const std::vector<float>& xValues;
-            const std::vector<float>& yValues;
+            std::vector<float>& xValues;
+            std::vector<float>& yValues;
 
             // Method to calculate and create trajectory mesh
             void calculateTrajectory(unsigned short tankIndex);
@@ -105,13 +146,13 @@ namespace m1
         void OnKeyPress(int key, int mods) override;
         void OnKeyRelease(int key, int mods) override;
         void OnMouseMove(int mouseX, int mouseY, int deltaX,
-            int deltaY) override;
+                         int deltaY) override;
         void OnMouseBtnPress(int mouseX, int mouseY, int button,
-            int mods) override;
+                             int mods) override;
         void OnMouseBtnRelease(int mouseX, int mouseY, int button,
-            int mods) override;
+                               int mods) override;
         void OnMouseScroll(int mouseX, int mouseY, int offsetX,
-            int offsetY) override;
+                           int offsetY) override;
         void OnWindowResize(int width, int height) override;
 
 
@@ -122,7 +163,7 @@ namespace m1
 
             const float step = static_cast<float>(resolution.x) /
                 static_cast<
-                float>(nrPoints - 1);
+                    float>(nrPoints - 1);
 
             for (int i = 0; i < nrPoints; ++i)
             {
@@ -134,8 +175,8 @@ namespace m1
                 // Fourier series used to generate the height map
                 float y = 4 * sin(t) + 2 * sin(
                     2 * t) + 1.5 * sin(
-                        3 * t) + 1 * sin(5 * t) + 0.5 * sin(10 * t) + 0.2 * sin(
-                            20 * t);
+                    3 * t) + 1 * sin(5 * t) + 0.5 * sin(10 * t) + 0.2 * sin(
+                    20 * t);
                 // Make the change in height more drastic
                 y *= 30;
 
@@ -153,11 +194,41 @@ namespace m1
             tank2.y = yValues[nrPoints - nrPoints / 10];
         }
 
+        void createGroundMesh()
+        {
+            // Create vertices for the triangle strip
+            std::vector<VertexFormat> vertices;
+            vertices.reserve(yValues.size() * 2);
+
+            glm::vec3 groundColor = rgbToVec3(30, 117, 32);
+
+            for (int i = 0; i < nrPoints; i++)
+            {
+                vertices.emplace_back(glm::vec3(xValues[i], yValues[i], 0),
+                                      groundColor);
+                vertices.emplace_back(glm::vec3(xValues[i], 0, 0), groundColor);
+            }
+
+            // Define indices for the triangle strip
+            std::vector<unsigned int> indices;
+            indices.reserve(vertices.size());
+            for (unsigned int i = 0; i < vertices.size(); ++i)
+            {
+                indices.push_back(i);
+            }
+
+            // Create and initialize the triangle strip mesh
+            ground = new Mesh("triangle_strip");
+            ground->SetDrawMode(GL_TRIANGLE_STRIP);
+            ground->InitFromData(vertices, indices);
+            AddMeshToList(ground);
+        }
+
         // Function that takes 3 color arguments and returns a glm::vec3
         // glm::vec3 groundColor(1.0 / 255 * 120, 1.0 / 255 * 150, 1.0 / 255 * 100);
         static glm::vec3 rgbToVec3(const int r, const int g, const int b)
         {
-            return { r / 256.0, g / 256.0, b / 256.0 };
+            return {r / 256.0, g / 256.0, b / 256.0};
         }
 
         void updateProjectiles(float deltaTimeSeconds)
@@ -165,29 +236,40 @@ namespace m1
             // Update the position of all the projectiles and their direction vector
             for (auto& projectile : projectiles1)
             {
+                if (projectile.isExploded)
+                {
+                    continue;
+                }
+
                 projectile.coordinates += projectile.direction *
                     deltaTimeSeconds;
                 // Adjust direction vector
                 projectile.direction -= gravity * deltaTimeSeconds;
+                // Check for collision
+                projectile.checkColision();
             }
 
             for (auto& projectile : projectiles2)
             {
+                if (projectile.isExploded)
+                {
+                    continue;
+                }
+
                 projectile.coordinates += projectile.direction *
                     deltaTimeSeconds;
                 projectile.direction -= gravity * deltaTimeSeconds;
+                projectile.checkColision();
             }
         }
 
     protected:
-        float cx{}, cy{};
         glm::mat3 modelMatrix{};
-        float translateX{}, translateY{};
-        float scaleX{}, scaleY{};
-        float angularStep{};
 
-        // TODO(student): If you need any other class variables, define them here.
         glm::ivec2 resolution{};
+
+        // Mesh for the ground
+        Mesh* ground;
 
         // Used for the height map
         std::vector<float> xValues;
@@ -208,24 +290,6 @@ namespace m1
         constexpr static int barrelLength = 40;
         constexpr static int projectileRadius = 5;
 
-        // // Barrel rotation
-        // float angleBarrel1;
-        // float angleBarrel2;
-        //
-        // // Coordinates of the tanks (from the middle of the bottom side)
-        // float tank1X;
-        // float tank1Y;
-        // float tank2X;
-        // float tank2Y;
-        //
-        // // Angles of the tanks
-        // float angleTank1;
-        // float angleTank2;
-        //
-        // // Shooting angles
-        // float projectileAngle1;
-        // float projectileAngle2;
-
         // The tanks
         Tank tank1;
         Tank tank2;
@@ -233,8 +297,7 @@ namespace m1
         // Keep track of projectiles for the tanks
         std::vector<Projectile> projectiles1;
         std::vector<Projectile> projectiles2;
-        const glm::vec2 gravity{ 0, 500 };
-        constexpr static int blastRadius = 50;
+        const glm::vec2 gravity{0, 500};
 
         constexpr static int sunRadius = 200;
         constexpr static int moonRadius = 100;
@@ -242,4 +305,4 @@ namespace m1
         constexpr static int starSideLength = 10;
         std::vector<glm::mat3> starModelMatrices;
     };
-} // namespace m1
+};
