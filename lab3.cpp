@@ -301,6 +301,9 @@ void Lab3::FrameStart()
     // Calculate shooting angles
     tank1.projectileAngle = tank1.angleBarrel + tank1.angleTank + M_PI / 2;
     tank2.projectileAngle = tank2.angleBarrel + tank2.angleTank + M_PI / 2;
+
+    // Update the terrain to simulate the landslide effect
+    landslide();
 }
 
 void Lab3::Update(float deltaTimeSeconds)

@@ -263,6 +263,30 @@ namespace m1
             }
         }
 
+        void landslide()
+        {
+            for (int i = 0; i < nrPoints - 1; i++)
+            {
+                float difference = fabs(yValues[i + 1] - yValues[i]);
+                if(difference > heightThreshold)
+                {
+                    if(yValues[i + 1] > yValues[i])
+                    {
+                        yValues[i] += epsilon;
+                        yValues[i + 1] -= epsilon;
+                    }
+                    else
+                    {
+                        yValues[i] -= epsilon;
+                        yValues[i + 1] += epsilon;
+                    }
+                }
+            }
+
+            // Redraw the ground
+            createGroundMesh();
+        }
+
     protected:
         glm::mat3 modelMatrix{};
 
@@ -270,6 +294,9 @@ namespace m1
 
         // Mesh for the ground
         Mesh* ground;
+        // Value used for landslide calculations
+        constexpr static unsigned int epsilon = 1;
+        constexpr static float heightThreshold = 3;
 
         // Used for the height map
         std::vector<float> xValues;
