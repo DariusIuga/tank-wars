@@ -1,10 +1,10 @@
-#include "lab_m1/lab3/lab3_vis2D.h"
+#include "lab_m1/Tema1/lab3_vis2D.h"
 
 #include <vector>
 #include <iostream>
 
-#include "lab_m1/lab3/transform2D.h"
-#include "lab_m1/lab3/object2D.h"
+#include "lab_m1/Tema1/transform2D.h"
+#include "lab_m1/Tema1/object2D.h"
 
 using namespace std;
 using namespace m1;
@@ -166,42 +166,9 @@ void Lab3_Vis2D::DrawScene(glm::mat3 visMatrix)
 
 void Lab3_Vis2D::OnInputUpdate(float deltaTime, int mods)
 {
-    float speed = 3;
     // TODO(student): Move the logic window with W, A, S, D (up, left, down, right)
-    if(window->KeyHold(GLFW_KEY_W))
-    {
-        logicSpace.y += speed * deltaTime;
-    }
-    if(window->KeyHold(GLFW_KEY_A))
-    {
-        logicSpace.x -= speed * deltaTime;
-    }
-    if(window->KeyHold(GLFW_KEY_S))
-    {
-        logicSpace.y -= speed * deltaTime;
-    }
-    if(window->KeyHold(GLFW_KEY_D))
-    {
-        logicSpace.x += speed * deltaTime;
-    }
 
     // TODO(student): Zoom in and zoom out logic window with Z and X
-
-
-    if(window->KeyHold(GLFW_KEY_Z))
-    {
-        logicSpace.x += speed * deltaTime / 2;
-        logicSpace.y += speed * deltaTime / 2;
-        logicSpace.width -= speed * deltaTime;
-        logicSpace.height -= speed * deltaTime;
-    }
-    if(window->KeyHold(GLFW_KEY_X))
-    {
-        logicSpace.x -= speed * deltaTime / 2;
-        logicSpace.y -= speed * deltaTime / 2;
-        logicSpace.width += speed * deltaTime;
-        logicSpace.height += speed * deltaTime;
-    }
 
 }
 
